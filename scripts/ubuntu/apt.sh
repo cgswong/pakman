@@ -2,7 +2,6 @@
 
 set -ex
 
-sudo apt-get -y uninstall java-1.7.0-openjdk
 sudo apt-get -y update
 sudo apt-get -y install \
   ansible \
