@@ -1,0 +1,6 @@
+# Packer output, cache and temporary build files
+output
+packer_cache
+build
+# Mac trashcan
+.DS_Store
