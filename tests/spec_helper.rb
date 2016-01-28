@@ -3,6 +3,8 @@ require 'serverspec'
 
 set :backend, :ssh
 
+set :path, '/usr/local/sbin:/usr/sbin:/sbin:$PATH'
+
 options = {}
 ssh_config = `vagrant ssh-config #{ENV['HOST']}`
 ssh_config.each_line do |line|
