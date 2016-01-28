@@ -53,6 +53,7 @@
   "post-processors": [{
     "type": "vagrant",
     "compression_level": 9,
+    "keep_input_artifact": true,
     "output": "build/centos-7.2-x86_64-{{.Provider}}.box"
   }]
 }

@@ -68,6 +68,7 @@
   "post-processors": [{
     "type": "vagrant",
     "compression_level": 9,
+    "keep_input_artifact": true,
     "output": "build/ubuntu-15.10-amd64-{{.Provider}}.box"
   }]
 }

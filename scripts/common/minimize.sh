@@ -3,11 +3,11 @@
 set -ex
 
 if type apt-get >/dev/null 2>&1; then
-    apt-get clean
+    sudo apt-get clean
 fi
 
 if type yum >/dev/null 2>&1; then
-    yum clean all
+    sudo yum clean all
 fi
 
 sudo dd if=/dev/zero of=/EMPTY bs=1M || :
@@ -27,4 +27,4 @@ sudo /sbin/mkswap ${swap_device_label:+-L "$swap_device_label"} ${swap_device_uu
 
 # Block until the empty file has been removed, otherwise, Packer
 # will try to kill the box while the disk is still full and that's bad
-sync
+sudo sync
