@@ -1,5 +1,7 @@
 {
-  "compression_level": "9",
+  "memory": "1024",
   "disk_size": "20480",
-  "headless": "true"
+  "headless": "true",
+  "ssh_name": "vagrant",
+  "ssh_pass": "vagrant"
 }

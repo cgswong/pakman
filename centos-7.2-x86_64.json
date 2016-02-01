@@ -6,7 +6,7 @@
     "headless": "false",
     "ssh_name": "vagrant",
     "ssh_pass": "vagrant",
-    "hostname": "ubuntu",
+    "hostname": "centos",
     "iso_url": "http://mirrors.kernel.org/centos/7.2.1511/isos/x86_64/CentOS-7-x86_64-NetInstall-1511.iso",
     "iso_checksum": "9ed9ffb5d89ab8cca834afce354daa70a21dcb410f58287d6316259ff89758f5"
   },
