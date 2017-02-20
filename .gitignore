@@ -2,5 +2,6 @@
 output
 packer_cache
 build
+iso
 # Mac trashcan
 .DS_Store
