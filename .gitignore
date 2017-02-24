@@ -3,5 +3,7 @@ output
 packer_cache
 build
 iso
+# Vagrant droppings
+.vagrant
 # Mac trashcan
 .DS_Store
