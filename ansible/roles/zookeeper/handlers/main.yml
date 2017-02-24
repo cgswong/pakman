@@ -1,0 +1,21 @@
+---
+- name: reload daemon
+  command: "systemctl daemon-reload"
+  tags:
+    - zookeeper
+
+- name: start zookeeper
+  service:
+    name: zookeeper
+    state: started
+    enabled: yes
+  tags:
+    - zookeeper
+
+- name: restart zookeeper
+  service:
+    name: zookeeper
+    state: restarted
+    enabled: yes
+  tags:
+    - zookeeper

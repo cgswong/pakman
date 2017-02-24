@@ -1,0 +1,23 @@
+# {{ ansible_managed }}
+
+[Unit]
+Description=ZooKeeper
+Documentation="https://zookeeper.apache.org/" "https://cwiki.apache.org/confluence/display/ZOOKEEPER/Index"
+After=network.target
+
+[Service]
+Type=forking
+User=zookeeper
+Group=zookeeper
+EnvironmentFile={{ zk_conf_dir }}/zookeeper-env.sh
+Environment="ZOOCFGDIR={{ zk_conf_dir }}"
+Environment="ZOOCFG={{ zk_conf_dir }}/{{ zk_conf_file }}"
+Environment="ZOOPIDFILE={{ zk_pid_file }}"
+ExecStart={{ zk_dir }}/bin/zkServer.sh start {{ zk_conf_dir }}/{{ zk_conf_file }}
+Restart=on-failure
+TimeoutSec=5s
+PIDFile={{ zk_pid_file }}
+ExecStop={{ zk_dir }}/bin/zkServer.sh stop
+
+[Install]
+WantedBy=multi-user.target

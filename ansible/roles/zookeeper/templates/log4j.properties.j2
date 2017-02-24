@@ -1,0 +1,36 @@
+# {{ ansible_managed }}
+# Define some default values that can be overridden by system properties
+zookeeper.root.logger={{ zk_root_logger }}
+zookeeper.console.threshold={{ zk_console_log_level }}
+zookeeper.log.dir={{ zk_log_dir }}
+zookeeper.log.file={{ zk_log_file }}
+zookeeper.log.threshold={{ zk_log_level }}
+zookeeper.tracelog.dir={{ zk_trace_dir }}
+zookeeper.tracelog.file={{ zk_trace_file }}
+
+## ZooKeeper Logging Configuration ##
+# Format is "<default threshold> (, <appender>)+
+log4j.rootLogger=${zookeeper.root.logger}
+
+# Log {{ zk_console_log_level }} level and above messages to the console
+log4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender
+log4j.appender.CONSOLE.Threshold=${zookeeper.console.threshold}
+log4j.appender.CONSOLE.layout=org.apache.log4j.PatternLayout
+log4j.appender.CONSOLE.layout.ConversionPattern=%d{ISO8601} [myid:%X{myid}] - %-5p [%t:%C{1}@%L] - %m%n
+
+# Log {{ zk_log_level }} level and above messages to a rolling log file with max log file size of {{ zk_rolling_log_file_max_size }}
+log4j.appender.ROLLINGFILE=org.apache.log4j.RollingFileAppender
+log4j.appender.ROLLINGFILE.Threshold=${zookeeper.log.threshold}
+log4j.appender.ROLLINGFILE.layout=org.apache.log4j.PatternLayout
+log4j.appender.ROLLINGFILE.layout.ConversionPattern=%d{ISO8601} [myid:%X{myid}] - %-5p [%t:%C{1}@%L] - %m%n
+log4j.appender.ROLLINGFILE.File=${zookeeper.log.dir}/${zookeeper.log.file}
+log4j.appender.ROLLINGFILE.MaxFileSize={{ zk_rolling_log_file_max_size }}
+log4j.appender.ROLLINGFILE.MaxBackupIndex={{ zk_rolling_log_file_max_count }}
+
+# Add TRACEFILE to rootLogger to get log file output. Log {{ zk_trace_level }} level and above messages to a log file
+log4j.appender.TRACEFILE=org.apache.log4j.FileAppender
+log4j.appender.TRACEFILE.Threshold={{ zk_trace_level }}
+log4j.appender.TRACEFILE.layout=org.apache.log4j.PatternLayout
+# Notice we are including log4j's NDC here (%x)
+log4j.appender.TRACEFILE.layout.ConversionPattern=%d{ISO8601} [myid:%X{myid}] - %-5p [%t:%C{1}@%L][%x] - %m%n
+log4j.appender.TRACEFILE.File=${zookeeper.tracelog.dir}/${zookeeper.tracelog.file}

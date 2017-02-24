@@ -1,0 +1,93 @@
+---
+zk_version: "3.4.9"
+zk_url: "http://www.us.apache.org/dist/zookeeper/zookeeper-{{ zk_version }}/zookeeper-{{ zk_version }}.tar.gz"
+zk_os_user: "zookeeper"
+zk_os_group: "zookeeper"
+zk_base_dir: "/opt"
+zk_dir: "{{ zk_base_dir }}/zookeeper"
+zk_conf_dir: "/etc/zookeeper"
+zk_conf_file: "zoo.cfg"
+zk_pid_dir: "/var/run/zookeeper"
+zk_pid_file: "{{ zk_pid_dir }}/zookeeper_server.pid"
+
+## Logging ##
+zk_log_dir: "/var/log/zookeeper"
+zk_log_file: "zookeeper.log"
+zk_trace_dir: "/var/log/zookeeper"
+zk_trace_file: "zookeeper_trace.log"
+
+zk_console_log_level: "INFO"
+zk_log_level: "INFO"
+zk_trace_level: "TRACE"
+zk_root_logger: "{{ zk_log_level }},ROLLINGFILE"
+
+# Rolling file appender settings
+zk_rolling_log_file_max_size: "20MB"
+zk_rolling_log_file_max_count: 10
+
+## Settings/Configuration ##
+# JMX
+# Set to `true` to disable remote JMX log4j management
+zk_jmx_log4j_disable: 'false'
+# JMX port for remote management
+zk_jmx_port: 3181
+
+# Port at which the clients will connect.
+zk_clientPort: 2181
+zk_secureClientPort: 2281
+# The number of ticks that the initial synchronization phase can take.
+zk_initLimit: 10
+zk_syncLimit: 5
+# The number of milliseconds of each tick.
+zk_tickTime: 5000
+# Maximum number of client connections.
+zk_maxClientCnxns: 100
+# Set to "0" to disable auto purge feature
+zk_autopurge_purgeInterval: 1
+# The number of snapshots to retain in dataDir.
+zk_autopurge_snapRetainCount: 5
+# The directory where the snapshot/data is stored.
+zk_dataDir: "/var/lib/zookeeper/data"
+# The directory where the transaction logs are stored.
+zk_dataLogDir: "/var/lib/zookeeper/logs"
+
+# JVM settings
+zk_jvm_min: "512M"
+zk_jvm_max: "512M"
+
+# Dictionary of configuration settings to be written into the `zoo.cfg` file
+zk_config: {
+  "tickTime": "{{ zk_tickTime }}",
+  "dataDir": "{{ zk_dataDir }}",
+  "dataLogDir": "{{ zk_dataLogDir }}",
+  "clientPort": "{{ zk_clientPort }}",
+  "secureClientPort": "{{ zk_secureClientPort }}",
+  "initLimit": "{{ zk_initLimit }}",
+  "syncLimit": "{{ zk_syncLimit }}",
+  "maxClientCnxns": "{{ zk_maxClientCnxns }}",
+  "autopurge.purgeInterval": "{{ zk_autopurge_purgeInterval }}",
+  "autopurge.snapRetainCount": "{{ zk_autopurge_snapRetainCount }}"
+}
+
+# Dictionary of environment settings to be written into the (optional) `zookeeper-env.sh` file
+zk_env: {
+  "JMXLOG4J": "{{ zk_jmx_log4j_disable }}",
+  "JMXPORT": "{{ zk_jmx_port }}",
+  "ZOOPIDFILE": "{{ zk_pid_file }}",
+  "ZOO_LOG_DIR": "{{ zk_log_dir }}",
+  "ZOO_LOG4J_PROP": "\"{{ zk_root_logger }}\"",
+  "SERVER_JVMFLAGS": "\"-Xms{{ zk_jvm_min }} -Xmx{{ zk_jvm_max }} -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory\""
+}
+
+## Ensemble members ##
+# Dictionary for hosts and IDs (i.e. {zk_hosts:[{host:,id:},{host:,id:},...]})
+zk_hosts:
+  - host: "{{ ansible_hostname }}"
+    id: 1
+# Custom IP per host group example:
+##zk_hosts: "
+##  {%- set ips = [] %}
+##  {%- for host in groups['zookeepers'] %}
+##  {{- ips.append(dict(id=loop.index, host=host, ip=hostvars[host]['ansible_default_ipv4'].address)) }}
+##  {%- endfor %}
+##  {{- ips -}}"

@@ -1,0 +1,19 @@
+# Install roles
+# From Galaxy
+- src: ernestas-poskus.ansible-prometheus
+  name: prometheus
+
+- src: elastic.elasticsearch
+  name: elasticsearch
+
+- src: geerlingguy.logstash
+  name: logstash
+
+- src: Stouts.grafana
+  name: grafana
+
+- src: savagegus.consul
+  name: consul
+
+# From GH
+

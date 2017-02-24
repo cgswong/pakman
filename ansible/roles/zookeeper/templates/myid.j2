@@ -1,0 +1,11 @@
+{% for server in zk_hosts %}
+{% if server.host is defined %}
+{% if server.host == ansible_hostname %}
+{{ server.id }}
+{% endif %}
+{% else %}
+{% if server == ansible_hostname %}
+{{ loop.index }}
+{% endif %}
+{% endif %}
+{% endfor %}

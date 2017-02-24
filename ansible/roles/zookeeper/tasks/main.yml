@@ -1,0 +1,123 @@
+---
+- name: Create ZooKeeper group
+  group:
+    name: "{{ zk_os_group }}"
+    state: present
+  tags:
+    - bootstrap
+    - zookeeper
+
+- name: Create ZooKeeper user
+  user:
+    comment: "ZooKeeper owner"
+    name: "{{ zk_os_user }}"
+    group: "{{ zk_os_group }}"
+    home: "/home/{{ zk_os_user }}"
+    createhome: yes
+    shell: "/bin/bash"
+    state: present
+    system: yes
+  tags:
+    - bootstrap
+    - zookeeper
+
+- name: Download ZooKeeper
+  get_url:
+    url: "{{ zk_url }}"
+    dest: "/tmp/zookeeper-{{ zk_version }}.tar.gz"
+  tags:
+    - bootstrap
+    - zookeeper
+
+- name: Unpack ZooKeeper tarball
+  command: "tar zxf /tmp/zookeeper-{{ zk_version }}.tar.gz -C {{ zk_base_dir }}"
+  args:
+    creates: "{{ zk_base_dir }}/zookeeper-{{ zk_version }}"
+  tags:
+    - bootstrap
+    - zookeeper
+
+- name: Create ZooKeeper dir link
+  file:
+    src: "{{ zk_base_dir }}/zookeeper-{{ zk_version }}"
+    path: "{{ zk_dir }}"
+    owner: "{{ zk_os_user }}"
+    group: "{{ zk_os_group }}"
+    state: link
+  tags:
+    - bootstrap
+    - zookeeper
+
+- name: "Create ZooKeeper {{ item }} directory"
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ zk_os_user }}"
+    group: "{{ zk_os_group }}"
+  with_items:
+    - "{{ zk_dataDir }}"
+    - "{{ zk_dataLogDir }}"
+    - "{{ zk_log_dir }}"
+    - "{{ zk_conf_dir }}"
+    - "{{ zk_pid_dir }}"
+  tags:
+    - bootstrap
+    - zookeeper
+
+- name: Add ZooKeeper bin dir to the PATH
+  copy:
+    content: 'export PATH=$PATH:{{ zk_dir }}/bin'
+    dest: '/etc/profile.d/zoo.sh'
+    mode: 755
+  tags:
+    - bootstrap
+    - zookeeper
+
+- name: Configure ZooKeeper
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ zk_os_user }}"
+    group: "{{ zk_os_group }}"
+  with_items:
+    - src: 'zoo.cfg.j2'
+      dest: "{{ zk_conf_dir }}/{{ zk_conf_file }}"
+    - src: 'log4j.properties.j2'
+      dest: "{{ zk_conf_dir }}/log4j.properties"
+    - src: 'myid.j2'
+      dest: "{{ zk_dataDir }}/myid"
+  notify:
+    - reload daemon
+    - restart zookeeper
+  tags:
+    - deploy
+    - bootstrap
+    - zookeeper
+
+- name: Deploy ZooKeeper service
+  template:
+    src: "zookeeper.service.j2"
+    dest: "/etc/systemd/system/zookeeper.service"
+    owner: "root"
+    group: "root"
+  notify:
+    - reload daemon
+    - restart zookeeper
+  tags:
+    - deploy
+    - bootstrap
+    - zookeeper
+
+- name: Configure ZooKeeper environment
+  template:
+    src: "zookeeper-env.sh.j2"
+    dest: "{{ zk_conf_dir }}/zookeeper-env.sh"
+    owner: "{{ zk_os_user }}"
+    group: "{{ zk_os_group }}"
+  notify:
+    - restart zookeeper
+  when: zk_env is defined and zk_env|length > 0
+  tags:
+    - deploy
+    - bootstrap
+    - zookeeper

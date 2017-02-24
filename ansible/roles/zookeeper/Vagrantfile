@@ -1,0 +1,28 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.ssh.forward_agent = true
+  config.vm.synced_folder Dir.getwd, "/home/vagrant/roles/ansible-zookeeper", nfs: true
+
+  # ubuntu
+  config.vm.define 'ubuntu', primary: true do |c|
+    c.vm.network "private_network", ip: "192.168.100.2"
+  	c.vm.box = "ubuntu/xenial64"
+  	c.vm.provision "shell" do |s|
+		  s.inline = "apt-get update -y; apt-get install ansible -y;"
+		  s.privileged = true
+    end
+  end
+
+  # centos 7
+  config.vm.define 'centos7' do |c|
+  	c.vm.network "private_network", ip: "192.168.100.4"
+    c.vm.box = "centos/7"
+  	c.vm.provision "shell" do |s|
+      s.inline = "yum install -y epel-release; yum install -y nc java-1.8.0-openjdk-devel ansible"
+		  s.privileged = true
+	  end
+  end
+
+end
