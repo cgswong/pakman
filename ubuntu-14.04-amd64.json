@@ -23,6 +23,9 @@
       "preseed/url=http://{{.HTTPIP}}:{{.HTTPPort}}/ubuntu-14.04.3/preseed.cfg ",
       "<enter>"
     ],
+    "ssh_bastion_host": "ec2-54-165-196-80.compute-1.amazonaws.com",
+    "ssh_bastion_username": "cgwong",
+    "ssh_bastion_private_key_file": "~/.aws/cgwong-maclocal-key-pair-useast1.pem",
     "ssh_wait_timeout": "60m",
     "ssh_username": "vagrant",
     "ssh_password": "vagrant",
