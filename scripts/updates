@@ -1,0 +1,57 @@
+#!/bin/bash -eux
+
+## Functions
+log() {
+  echo "$(date +"[%F %X,000]") $(hostname) $1"
+}
+
+die() {
+  log "[FAIL] $1" >&2 && exit 1
+}
+
+update_ubuntu() {
+  # Disable release-upgrades
+  sudo sed -i.bak 's/^Prompt=.*$/Prompt=never/' /etc/update-manager/release-upgrades
+
+  # Update package index on boot
+sudo cat <<EOF >/etc/init/refresh-apt.conf
+description "update package index"
+start on networking
+task
+exec /usr/bin/apt-get update
+EOF
+
+  # Update the package list
+  sudo apt-get -y update
+
+  # Upgrade all installed packages including kernel and kernel headers
+  sudo apt-get -y dist-upgrade
+
+  # Enable automatic scheduled updates
+  sudo apt-get -y install unattended-upgrades
+  sudo sed -e 's|^\/\/      "${distro_id}:${distro_codename}-security";|        "${distro_id}:${distro_codename}-security";|' -i /etc/apt/apt.conf.d/50unattended-upgrades
+  sudo cat > /etc/apt/apt.conf.d/10periodic <<EOF
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Download-Upgradeable-Packages "0";
+APT::Periodic::Unattended-Upgrade "7";
+APT::Periodic::AutocleanInterval "7";
+APT::Periodic::CleanInterval "7";
+EOF
+}
+
+update_centos() {
+  sudo yum -y update
+  # Enable automatic scheduled updates
+  sudo yum -y install yum-cron
+  sudo sed -e 's/^update_cmd = /update_cmd = security/' -e 's/^apply_updates = no/apply_updates = yes/' -i /etc/yum/yum-cron.conf
+}
+
+## Main
+OS_DISTRO=$(grep "^NAME=" /etc/os-release | cut -d= -f2 | tr -d \")
+if [[ "${OS_DISTRO}" == "Ubuntu" ]]; then
+  update_ubuntu
+else
+  update_centos
+fi
+
+exit $?

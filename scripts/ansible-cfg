@@ -1,0 +1,65 @@
+#!/bin/bash -eux
+# DESC: Install Ansible
+
+## Functions
+log() {
+  echo "$(date +"[%F %X,000]") $(hostname) $1"
+}
+
+die() {
+  log "[FAIL] $1" >&2 && exit 1
+}
+
+install_centos() {
+  sudo yum -y update
+
+  sudo update-ca-trust
+
+  # Install EPEL repository
+  sudo yum -y install epel-release
+
+  # Install Ansible
+  sudo yum -y install ansible \
+                      libselinux-python
+}
+
+install_ubuntu() {
+  sudo update-ca-certificates
+
+  # Install PPA repository
+  sudo apt-get -y install software-properties-common
+  sudo add-apt-repository -y ppa:ansible/ansible
+  if [[ ! $? ]]; then
+    log '[WARN] Unable to install Ansible PPA repository.'
+    log '[INFO] Doing alternate installation...'
+sudo cat > /etc/apt/sources.list.d/ppa.list <<EOF
+deb http://ppa.launchpad.net/ansible/ansible/ubuntu xenial main
+deb-src http://ppa.launchpad.net/ansible/ansible/ubuntu xenial main
+EOF
+  sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6125E2A8C77F2818FB7BD15B93C4A3FD7BB9C367
+fi
+  sudo apt-get -y update -q > /dev/null
+  sudo apt-get -y upgrade -qq > /dev/null
+
+  # Install Ansible
+  sudo apt-get -y install ansible
+}
+
+install_pip() {
+  # Install pip
+  sudo easy_install pip
+
+  # Install Ansible
+  sudo pip install ansible
+}
+
+OS_DISTRO=$(grep "^NAME=" /etc/os-release | cut -d= -f2 | tr -d \")
+if [[ "${OS_DISTRO}" == "Ubuntu" ]]; then
+  install_ubuntu
+elif [[ "${OS_DISTRO}" ]]; then
+  install_centos
+else
+  install_pip
+fi
+
+exit $?

@@ -1,0 +1,141 @@
+#!/bin/bash -eux
+# DESC: Cleanup image.
+
+## Global variables
+SSH_USER=${SSH_USERNAME:-vagrant}
+
+## Functions
+log() {
+  echo "$(date +"[%F %X,000]") $(hostname) $1"
+}
+
+die() {
+  log "[FAIL] $1" >&2 && exit 1
+}
+
+clean_centos() {
+  log "[INFO] Clean up cache of metadata and packages to save space."
+  sudo yum -y remove kernel-devel kernel-headers
+  sudo yum -y --enablerepo='*' clean all
+  sudo yum -y history new
+  sudo truncate -c -s 0 /var/log/yum.log
+
+  # Only leave latest kernel (does not account for kernel-ml)
+  log "[INFO] Ensuring only latest kernel is retained (removes oldies)."
+  package-cleanup -y --oldkernels --count=1
+
+  log "[INFO] Rebuild RPM DB."
+  sudo rpmdb --rebuilddb
+  sudo rm -f /var/lib/rpm/__db*
+
+  # Radio off & remove all interface configuration
+  log "[INFO] Cleanup networking."
+  sudo nmcli radio all off
+  sudo systemctl stop NetworkManager.service
+  for ifcfg in $(ls /etc/sysconfig/network-scripts/ifcfg-* | grep -v "ifcfg-lo") ; do
+    sudo rm -f ${ifcfg}
+  done
+  sudo rm -rf /var/lib/NetworkManager/*
+
+  # Fix for https://github.com/CentOS/sig-cloud-instance-build/issues/38
+sudo cat > /etc/sysconfig/network-scripts/ifcfg-eth0 << EOF
+DEVICE="eth0"
+BOOTPROTO="dhcp"
+ONBOOT="yes"
+TYPE="Ethernet"
+PERSISTENT_DHCLIENT="yes"
+EOF
+}
+
+clean_ubuntu() {
+  # Cleanup apt cache
+  log "[INFO] Clean up cache of metadata and packages to save space."
+  # Delete all Linux headers
+  sudo dpkg --list | awk '{ print $2 }' | grep 'linux-headers' | xargs sudo apt-get -y purge
+
+  # Remove specific Linux kernels, such as older ones but keep the current kernel and do not touch the virtual packages,
+  # e.g. 'linux-image-generic', etc.
+  sudo dpkg --list | awk '{ print $2 }' | grep 'linux-image-.*-generic' | grep -v $(uname -r) | xargs sudo apt-get -y purge
+
+  # Delete Linux source
+  sudo dpkg --list | awk '{ print $2 }' | grep linux-source | xargs sudo apt-get -y purge
+
+  # Delete development packages
+  sudo dpkg --list | awk '{ print $2 }' | grep -- '-dev$' | xargs sudo apt-get -y purge
+
+  # Delete docs packages
+  sudo dpkg --list | awk '{ print $2 }' | grep -- '-doc$' | xargs sudo apt-get -y purge
+
+  # Delete X11 libraries
+  sudo apt-get -y purge libx11-data xauth libxmuu1 libxcb1 libx11-6 libxext6
+
+  # Delete obsolete networking
+  sudo apt-get -y purge ppp pppconfig pppoeconf
+
+  # Delete oddities
+  sudo apt-get -y purge popularity-contest installation-report friendly-recovery
+
+  sudo apt-get -y autoremove --purge
+  sudo apt-get -y clean
+  sudo apt-get -y autoclean
+
+  log "[INFO] Clean up network interfaces."
+  # REF: https://github.com/cbednarski/packer-ubuntu/blob/master/scripts-1604/vm_cleanup.sh#L9-L15
+  # When booting with Vagrant / VMware the PCI slot is changed from 33 to 32.
+  # Instead of eth0 the interface is now called ens33 to mach the PCI slot,
+  # so we need to change the networking scripts to enable the correct
+  # interface.
+  #
+  # NOTE: After the machine is rebooted Packer will not be able to reconnect
+  # (Vagrant will be able to) so make sure this is done in your final
+  # provisioner.
+  sudo sed -i "s/ens33/ens32/g" /etc/network/interfaces
+}
+
+clean_all() {
+  log "[INFO] Recreate machine id."
+  sudo rm -f /etc/machine-id
+  sudo systemd-machine-id-setup
+
+  log "[INFO] Clean up temporary network addresses."
+  sudo rm -f /lib/udev/rules.d/75-persistent-net-generator.rules
+  # Make sure udev doesn't block our network
+  rm -rf /dev/.udev/
+
+  log "[INFO] Clean up core files."
+  sudo rm -f /core*
+
+  log '[INFO] Cleaning up /tmp and VBox Guest Additions.'
+  rm -rf /tmp/*
+  rm -f VBoxGuestAdditions_*.iso VBoxGuestAdditions_*.iso.?
+
+  # Remove docs
+  log "[INFO] Remove docs."
+  rm -rf /usr/share/doc/*
+
+  # Remove Bash history
+  log "[INFO] Remove Bash history."
+  unset HISTFILE
+  sudo rm -f /root/.bash_history
+  sudo rm -f /home/${SSH_USER}/.bash_history
+
+  # Remove caches
+  log "[INFO] Remove caches."
+  sudo find /var/cache -type f -exec sudo rm -rf {} \;
+
+  # Delete any logs that have built up during the install
+  log "[INFO] Clean up logs."
+  sudo find /var/log -type f | while read f; do echo -ne '' | sudo tee "${f}" >/dev/null; done
+}
+
+## Main
+OS_DISTRO=$(grep "^NAME=" /etc/os-release | cut -d= -f2 | tr -d \")
+if [[ "${OS_DISTRO}" == "Ubuntu" ]]; then
+  clean_ubuntu
+else
+  clean_centos
+fi
+
+clean_all
+
+exit $?

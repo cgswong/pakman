@@ -1,0 +1,51 @@
+#!/bin/bash -eux
+# DESC: Setup for VirtualBox environment.
+
+## Global values
+SSH_USER=${SSH_USERNAME:-vagrant}
+SSH_USER_HOME=${SSH_USER_HOME:-/home/${SSH_USER}}
+VBOX_MOUNT="/mnt/vbox"
+VBOX_VERSION=$(cat ${SSH_USER_HOME}/.vbox_version)
+
+## Functions
+log() {
+  echo "$(date +"[%F %X,000]") $(hostname) $1"
+}
+
+die() {
+  log "[FAIL] $1" >&2 && exit 1
+}
+
+## Main
+log "[INFO] VirtualBox Tools version: ${VBOX_VERSION}"
+sudo mkdir -p ${VBOX_MOUNT}
+OS_DISTRO=$(grep "^NAME=" /etc/os-release | cut -d= -f2 | tr -d \")
+if [[ "${OS_DISTRO}" == "Ubuntu" ]]; then
+  sudo apt-get -y install \
+    linux-headers-$(uname -r) \
+    build-essential \
+    dkms \ 
+    make
+else
+  sudo yum -y install \
+    dkms \
+    kernel-devel-$(uname -r) \
+    kernel-headers-$(uname -r)
+fi
+
+sudo mount -o loop ${SSH_USER_HOME}/VBoxGuestAdditions_${VBOX_VERSION}.iso ${VBOX_MOUNT}
+sudo sh ${VBOX_MOUNT}/VBoxLinuxAdditions.run --nox11
+sudo umount ${VBOX_MOUNT}
+sudo rm -rf ${VBOX_MOUNT} \
+  ${SSH_USER_HOME}/VBoxGuestAdditions_${VBOX_VERSION}.iso
+
+log "[INFO] Removing packages needed for building guest tools"
+if [[ "${OS_DISTRO}" == "Ubuntu" ]]; then 
+  sudo apt-get -y remove linux-headers-$(uname -r) 
+else
+  sudo rpm -e --nodeps \
+    kernel-devel-$(uname -r) \
+    kernel-headers-$(uname -r)
+fi
+
+exit $?

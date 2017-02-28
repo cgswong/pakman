@@ -1,0 +1,40 @@
+#!/bun/bash -eux
+# DESC: Install latest kernel from IUS repo (kernel-ml).
+
+## Functions
+log() {
+  echo "$(date +"[%F %X,000]") $(hostname) $1"
+}
+
+die() {
+  log "[FAIL] $1" >&2 && exit 1
+}
+
+## Main
+OS_DISTRO=$(grep "^NAME=" /etc/os-release | cut -d= -f2 | tr -d \")
+if [[ "${OS_DISTRO}" == "CentOS Linux" ]]; then
+  # Install latest kernel
+  log "[INFO] Install latest kernel (kernel-ml) from IUS."
+  sudo rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+  sudo yum -y install http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
+  sudo yum -y install yum-plugin-fastestmirror
+  sudo yum -y --enablerepo=elrepo-kernel install kernel-ml
+
+  # Enable latest kernel
+  log "[INFO] Enabling latest kernel (kernel-ml) from IUS."
+  grub2-set-default 0
+else
+  if [ ! -z "${KERNEL_URL}" ] && [ ! -z "${KERNEL_UPDATE}" ]; then
+    log "[INFO] Download kernel ${KERNEL_UPDATE}"
+    curl --location --silent --show-error --output /tmp/${KERNEL_UPDATE} ${KERNEL_URL}
+    log "[INFO] Installing kernel ${KERNEL_UPDATE}"
+    sudo dpkg -i /tmp/*.deb
+    log "[INFO] Enabling grub for kernel ${KERNEL_UPDATE}"
+    sudo update-grub
+  else
+    die "KERNEL_UPDATE or KERNEL_URL has not been specified for a kernel update."
+  fi
+fi
+
+log "[INFO] Rebooting..."
+reboot

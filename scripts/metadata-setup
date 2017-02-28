@@ -1,0 +1,22 @@
+#!/bin/bash -eux
+# DESC: Put some image metadata on instance.
+
+BUILD_DATE=$(date +%Y-%m-%d)
+sudo cat > /etc/image.meta <<EOF
+image_version="${IMG_VERSION}"
+image_arch="x86_64"
+image_file="${IMG_FILE}"
+image_stamp="${IMG_STAMP}"
+image_build_date="${BUILD_DATE}"
+EOF
+
+# Add MOTD tail
+OS_DISTRO=$(grep "^NAME=" /etc/os-release | cut -d= -f2 | tr -d \")
+OS_VERSION=$(grep "^VERSION=" /etc/os-release | cut -d= -f2 | tr -d \")
+sudo cat > /etc/motd.tail <<EOF
+Platform: ${OS_DISTRO} ${OS_VERSION}
+Built: ${BUILD_DATE}
+EOF
+
+exit $?
+

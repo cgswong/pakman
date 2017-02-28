@@ -1,0 +1,34 @@
+#!/bin/bash -eux
+# DESC: Apply some network / DNS fixes.
+
+## Functions
+log() {
+  echo "$(date +"[%F %X,000]") $(hostname) $1"
+}
+
+die() {
+  log "[FAIL] $1" >&2 && exit 1
+}
+
+## Main
+OS_DISTRO=$(grep "^NAME=" /etc/os-release | cut -d= -f2 | tr -d \")
+if [[ "${OS_DISTRO}" == "CentOS Linux" ]]; then
+  # Apply slow DNS fix
+  # Add 'single-request-reopen' so it is included when /etc/resolv.conf is generated
+  log '[INFO] Slow DNS fix being applied (single-request-reopen).'
+  echo 'RES_OPTIONS="single-request-reopen"' | sudo tee -a /etc/sysconfig/network >>/dev/null
+  sudo systemctl restart network
+  [[ $? -eq 0 ]] && log '[INFO] Completed slow DNS fix.' \
+    || die 'Applying slow DNS fix.'
+
+  # Enable graceful shutdown from 'vagrant halt'
+  log "[INFO] Enabling ACPID service."
+  sudo yum -y install acpid
+  sudo systemctl start acpid
+  sudo systemctl enable acpid
+else
+  # Adding a 2 sec delay to the interface up, to make the dhclient happy
+  echo "pre-up sleep 2" | sudo tee -a /etc/network/interfaces >>/dev/null
+fi
+
+exit $?

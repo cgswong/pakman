@@ -1,0 +1,37 @@
+#!/bin/bash -eux
+
+## Global values
+SSHD_CONFIG="/etc/ssh/sshd_config"
+USEDNS="UseDNS no"
+GSSAPI="GSSAPIAuthentication no"
+
+## Functions
+log() {
+  echo "$(date +"[%F %X,000]") $(hostname) $1"
+}
+
+die() {
+  log "[FAIL] $1" >&2 && exit 1
+}
+
+## Main
+# Ensure trailing newline before attempting to concatenate
+sudo sed -i -e '$a\' "${SSHD_CONFIG}"
+
+# Turn off sshd DNS lookup to prevent timeout delay
+log '[INFO] Turning off SSHD DNS lookup to prevent timeout delay.'
+if [[ grep -q -E "^[[:space:]]*UseDNS" "${SSHD_CONFIG}" ]]; then
+  sudo sed -i "s/^\s*UseDNS.*/${USEDNS}/" "${SSHD_CONFIG}"
+else
+  echo "${USEDNS}" | sudo tee -a "${SSHD_CONFIG}" >>/dev/null
+fi
+[[ $? -ne 0 ]] && log '[FAIL] Unable to turn off SSHD DNS lookup to prevent timeout delay.'
+
+# Disable GSSAPI authentication to prevent timeout delay
+log '[INFO] Disabling GSSAPI authentication to prevent timeout delay.'
+if [[ grep -q -E "^[[:space:]]*GSSAPIAuthentication" "${SSHD_CONFIG}" ]]; then
+  sudo sed -i "s/^\s*GSSAPIAuthentication.*/${GSSAPI}/" "${SSHD_CONFIG}"
+else
+  echo "${GSSAPI}" | sudo tee -a "${SSHD_CONFIG}" >>/dev/null
+fi
+[[ $? -eq 0 ]] && exit $? || die 'Unable to disable GSSAPI authentication to prevent timeout delay.'

@@ -1,0 +1,40 @@
+#!/bin/bash -eux
+
+## Global values
+SSH_USER=${SSH_USERNAME:-vagrant}
+HOME_DIR="${HOME_DIR:-/home/${SSH_USER}}"
+pubkey_url="https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant.pub"
+
+## Functions
+log() {
+  echo "$(date +"[%F %X,000]") $(hostname) $1"
+}
+
+die() {
+  log "[FAIL] $1" >&2 && exit 1
+}
+
+## Main
+id -u ${SSH_USER} >/dev/null 2>&1
+if [[ $? -ne 0 ]]; then
+  log '[INFO] Creating user ${SSH_USER}.'
+  sudo groupadd ${SSH_USER}
+  sudo useradd ${SSH_USER} -g ${SSH_USER} -G wheel
+  echo "${SSH_USER}" | sudo passwd --stdin ${SSH_USER}
+fi
+
+if [[ ! -f /etc/sudoers.d/vagrant ]]; then
+  log '[INFO] Giving ${SSH_USER} sudo powers.'
+  echo "%vagrant ALL=(ALL) NOPASSWD: ALL" | sudo tee -a /etc/sudoers.d/vagrant >>/dev/null
+  sudo chmod 0440 /etc/sudoers.d/vagrant
+fi
+
+[[ ! -d ${HOME_DIR}/.ssh ]] && sudo mkdir -m 0700 -p ${HOME_DIR}/.ssh
+sudo curl --location --silent --show-error "${pubkey_url}" --output ${HOME_DIR}/.ssh/authorized_keys
+[[ $? -ne 0 ]] && die 'Unable to download Vagrant public key.'
+sudo chown -R ${SSH_USER}:${SSH_USER} ${HOME_DIR}/.ssh
+sudo chmod 0700 ${HOME_DIR}/.ssh
+sudo chmod 0600 ${HOME_DIR}/.ssh/authorized_keys
+
+exit $?
+
