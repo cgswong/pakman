@@ -30,9 +30,13 @@
     - zookeeper
 
 - name: Unpack ZooKeeper tarball
-  command: "tar zxf /tmp/zookeeper-{{ zk_version }}.tar.gz -C {{ zk_base_dir }}"
-  args:
+  unarchive:
+    src: "/tmp/zookeeper-{{ zk_version }}.tar.gz"
+    dest: "{{ zk_base_dir }}"
+    copy: no
     creates: "{{ zk_base_dir }}/zookeeper-{{ zk_version }}"
+    group: "{{ zk_os_group }}"
+    owner: "{{ zk_os_user }}"
   tags:
     - bootstrap
     - zookeeper
@@ -88,7 +92,6 @@
       dest: "{{ zk_dataDir }}/myid"
   notify:
     - reload daemon
-    - restart zookeeper
   tags:
     - deploy
     - bootstrap
@@ -102,7 +105,6 @@
     group: "root"
   notify:
     - reload daemon
-    - restart zookeeper
   tags:
     - deploy
     - bootstrap
@@ -115,9 +117,28 @@
     owner: "{{ zk_os_user }}"
     group: "{{ zk_os_group }}"
   notify:
-    - restart zookeeper
+    - reload daemon
   when: zk_env is defined and zk_env|length > 0
   tags:
     - deploy
     - bootstrap
     - zookeeper
+
+- name: Enable ZooKeeper service
+  service:
+    name: zookeeper
+    enabled: yes
+  tags:
+    - deploy
+    - bootstrap
+    - zookeeper
+
+- name: Start ZooKeeper service
+  service:
+    name: zookeeper
+    state: started
+    enabled: yes
+  when: zk_start_service is defined
+  tags:
+    - zookeeper
+    - deploy

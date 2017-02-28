@@ -1,112 +1,174 @@
-ansible-zookeeper
-=================
+# ansible-zookeeper
 
-[![Build Status](https://travis-ci.org/AnsibleShipyard/ansible-zookeeper.svg?branch=master)](https://travis-ci.org/AnsibleShipyard/ansible-zookeeper)
+Ansible playbook for ZooKeeper.
 
-ZooKeeper playbook for Ansible
-
-Installation
------------
+## Installation
 
 ```bash
-ansible-galaxy install AnsibleShipyard.ansible-zookeeper
+ansible-galaxy install cgswong.ansible-zookeeper
 ```
 
-Dependencies
-------------
+## Dependencies
 
-Java
+None. Currently, the latest Java 8 is installed as part of the playbook. If you want to lock the version or use a Java playbook to manage feel free.
 
- - https://github.com/AnsibleShipyard/ansible-java
- - https://github.com/geerlingguy/ansible-role-java
+## Requirements
 
-Requirements
-------------
+Ansible version >= 2.1
 
-Ansible version at least 1.6
-
-Role Variables
---------------
+## Role Variables
 
 ```yaml
 ---
-ansible_playbook_version: 0.1
-zookeeper_playbook_version: "0.17.0"
-zookeeper_version: 3.4.6
-zookeeper_url: http://www.us.apache.org/dist/zookeeper/zookeeper-{{zookeeper_version}}/zookeeper-{{zookeeper_version}}.tar.gz
+# ZooKeeper version to install
+zk_version: "3.4.9"
+# URL for ZooKeeper download
+zk_url: "http://www.us.apache.org/dist/zookeeper/zookeeper-{{ zk_version }}/zookeeper-{{ zk_version }}.tar.gz"
+# OS user to create and use
+zk_os_user: "zookeeper"
+# OS group to create and use for user
+zk_os_group: "zookeeper"
+# Base ZooKeeper software installation directory
+zk_base_dir: "/opt"
+# ZooKeeper software installation directory
+zk_dir: "{{ zk_base_dir }}/zookeeper"
+# ZooKeeper configuration directory
+zk_conf_dir: "/etc/zookeeper"
+# ZooKeeper configuration file
+zk_conf_file: "zoo.cfg"
+# ZooKeeper OS PID (process identifier) directory location
+zk_pid_dir: "/var/run/zookeeper"
+# ZooKeeper OS PID (process identifier) full file path
+zk_pid_file: "{{ zk_pid_dir }}/zookeeper_server.pid"
+# Enable to start `zookeeper` service during provisioning
+##zk_start_service: true
 
-# Flag that selects if systemd or upstart will be used for the init service:
-# Note: by default Ubuntu 15.04 and later use systemd (but support switch to upstart)
-zookeeper_debian_systemd_enabled: "{{ ansible_distribution_version|version_compare(15.04, '>=') }}"
-zookeeper_debian_apt_install: false
-# (Optional:) add custom 'ppa' repositories depending on the distro version (only with debian_apt_install=true)
-# Example: to use a community zookeeper v3.4.8 deb pkg for Ubuntu 14.04 (where latest official is v3.4.5)
-zookeeper_debian_apt_repositories:
-  - repository_url: "ppa:ufscar/zookeeper"
-    distro_version: "14.04"
+## Logging ##
+# ZooKeeper log directory
+zk_log_dir: "/var/log/zookeeper"
+# ZooKeeper log file name
+zk_log_file: "zookeeper.log"
+# ZooKeeper trace directory
+zk_trace_dir: "/var/log/zookeeper"
+# ZooKeeper trace file name
+zk_trace_file: "zookeeper_trace.log"
 
-apt_cache_timeout: 3600
-zookeeper_register_path_env: false
+# ZooKeeper log4j console logging level (INFO | WARN | ERROR | FATAL | TRACE | DEBUG)
+zk_console_log_level: "INFO"
+# ZooKeeper log4j standard logging level (INFO | WARN | ERROR | FATAL | TRACE | DEBUG)
+zk_log_level: "INFO"
+# ZooKeeper log4j trace logging level (INFO | WARN | ERROR | FATAL | TRACE | DEBUG)
+zk_trace_level: "TRACE"
+# ZooKeeper root logger setup where format is `<log level>,<output>` and output should be either `CONSOLE`, or `ROLLINGFILE`
+zk_root_logger: "{{ zk_log_level }},ROLLINGFILE"
 
-client_port: 2181
-init_limit: 5
-sync_limit: 2
-tick_time: 2000
-zookeeper_autopurge_purgeInterval: 0
-zookeeper_autopurge_snapRetainCount: 10
+# Rolling file appender settings where `..._max_size` is the maximum size of the file before rotation
+# and `..._max_count` are the number of files to keep
+zk_rolling_log_file_max_size: "20MB"
+zk_rolling_log_file_max_count: 10
 
-data_dir: /var/lib/zookeeper
-log_dir: /var/log/zookeeper
-zookeeper_dir: /opt/zookeeper-{{zookeeper_version}} # or /usr/share/zookeeper when zookeeper_debian_apt_install is true
-zookeeper_conf_dir: {{zookeeper_dir}} # or /etc/zookeeper when zookeeper_debian_apt_install is true
-zookeeper_tarball_dir: /opt/src
+## Settings/Configuration ##
+# JMX
+# Set to `true` to disable remote JMX log4j management
+zk_jmx_log4j_disable: 'false'
+# JMX port for remote management
+zk_jmx_port: 3181
 
-# List of dict (i.e. {zookeeper_hosts:[{host:,id:},{host:,id:},...]})
-zookeeper_hosts:
-  - host: "{{inventory_hostname}}" # the machine running
+# Port at which the clients will connect.
+zk_clientPort: 2181
+# Port at which the clients will connect using SSL (requires Netty connections)
+# NOTE: `-Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory` must be set as a SERVER_JVMFLAGS
+zk_secureClientPort: 2281
+# The number of ticks that the initial synchronization phase can take.
+zk_initLimit: 10
+zk_syncLimit: 5
+# The number of milliseconds of each tick.
+zk_tickTime: 5000
+# Maximum number of client connections.
+zk_maxClientCnxns: 100
+# Set to "0" to disable auto purge feature
+zk_autopurge_purgeInterval: 1
+# The number of snapshots to retain in dataDir.
+zk_autopurge_snapRetainCount: 5
+# The directory where the snapshot/data is stored.
+zk_dataDir: "/var/lib/zookeeper/data"
+# The directory where the transaction logs are stored.
+zk_dataLogDir: "/var/lib/zookeeper/logs"
+
+# JVM settings
+zk_jvm_min: "512M"
+zk_jvm_max: "512M"
+
+# Dictionary of configuration settings to be written into the `zoo.cfg` file
+zk_config: {
+  "tickTime": "{{ zk_tickTime }}",
+  "dataDir": "{{ zk_dataDir }}",
+  "dataLogDir": "{{ zk_dataLogDir }}",
+  "clientPort": "{{ zk_clientPort }}",
+  "secureClientPort": "{{ zk_secureClientPort }}",
+  "initLimit": "{{ zk_initLimit }}",
+  "syncLimit": "{{ zk_syncLimit }}",
+  "maxClientCnxns": "{{ zk_maxClientCnxns }}",
+  "autopurge.purgeInterval": "{{ zk_autopurge_purgeInterval }}",
+  "autopurge.snapRetainCount": "{{ zk_autopurge_snapRetainCount }}"
+}
+
+# Dictionary of environment settings to be written into the (optional) `zookeeper-env.sh` file
+zk_env: {
+  "JMXLOG4J": "{{ zk_jmx_log4j_disable }}",
+  "JMXPORT": "{{ zk_jmx_port }}",
+  "ZOOPIDFILE": "{{ zk_pid_file }}",
+  "ZOO_LOG_DIR": "{{ zk_log_dir }}",
+  "ZOO_LOG4J_PROP": "\"{{ zk_root_logger }}\"",
+  "SERVER_JVMFLAGS": "\"-Xms{{ zk_jvm_min }} -Xmx{{ zk_jvm_max }} -Dzookeeper.serverCnxnFactory=org.apache.zookeeper.server.NettyServerCnxnFactory\""
+}
+
+## Ensemble members ##
+# Dictionary for hosts and myids (i.e. {zk_hosts:[{host:,id:},{host:,id:},...]})
+zk_hosts:
+  - host: "{{ ansible_hostname }}"
     id: 1
-
-# Dict of ENV settings to be written into the (optional) conf/zookeeper-env.sh
-zookeeper_env: {}
-
-# Controls Zookeeper myid generation
-zookeeper_force_myid: yes
+# Custom IP per host group example:
+##zk_hosts: "
+##  {%- set ips = [] %}
+##  {%- for host in groups['zookeepers'] %}
+##  {{- ips.append(dict(id=loop.index, host=host, ip=hostvars[host]['ansible_default_ipv4'].address)) }}
+##  {%- endfor %}
+##  {{- ips -}}"
 ```
 
-Example Playbook
-----------------
+## Example Playbook
 
 ```yaml
 - name: Installing ZooKeeper
   hosts: all
-  sudo: yes
+  become: True
   roles:
-    - role: AnsibleShipyard.ansible-zookeeper
+    - role: cgswong.ansible-zookeeper
 ```
 
-Cluster Example
-----------------
+## Cluster Example
 
 ```yaml
 - name: Zookeeper cluster setup
   hosts: zookeepers
-  sudo: yes
+  become: True
   roles:
-    - role: AnsibleShipyard.ansible-zookeeper
-      zookeeper_hosts: "{{groups['zookeepers']}}"
+    - role: cgswong.ansible-zookeeper
+      zk_hosts: "{{groups['zookeepers']}}"
 ```
 
-Assuming ```zookeepers``` is a [hosts group](http://docs.ansible.com/ansible/intro_inventory.html#group-variables) defined in inventory file.
+The above assumes the host `zookeepers` is a [hosts group](http://docs.ansible.com/ansible/intro_inventory.html#group-variables) defined in inventory file as shown in the example below:
 
 ```inventory
 [zookeepers]
 server[1:3]
 ```
 
-Custom IP per host group
+### Custom IP per host group example
 
 ```
-zookeeper_hosts: "
+zk_hosts: "
     {%- set ips = [] %}
     {%- for host in groups['zookeepers'] %}
     {{- ips.append(dict(id=loop.index, host=host, ip=hostvars[host]['ansible_default_ipv4'].address)) }}
@@ -114,16 +176,11 @@ zookeeper_hosts: "
     {{- ips -}}"
 ```
 
-See this sample [playbook](https://github.com/AnsibleShipyard/ansible-galaxy-roles/blob/master/playbook.yml)
-which shows how to use this playbook as well as others. It is part of [ansible-galaxy-roles](https://github.com/AnsibleShipyard/ansible-galaxy-roles) and
-serves as a curation (and thus an example) of all our ansible playbooks.
-
-License
--------
+## License
 
 The MIT License (MIT)
 
-Copyright (c) 2014 Kien Pham
+Copyright (c) 2014 Stuart Wong
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -144,17 +201,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-AnsibleShipyard
--------
+## Author Information
 
-Our related playbooks
-
-1. [ansible-mesos](https://github.com/AnsibleShipyard/ansible-mesos)
-1. [ansible-marathon](https://github.com/AnsibleShipyard/ansible-marathon)
-1. [ansible-chronos](https://github.com/AnsibleShipyard/ansible-chronos)
-1. [ansible-zookeeper](https://github.com/AnsibleShipyard/ansible-zookeeper)
-
-Author Information
-------------------
-
-@AnsibleShipyard/developers and others.
+@cgswong
