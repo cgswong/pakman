@@ -16,7 +16,6 @@
     createhome: yes
     shell: "/bin/bash"
     state: present
-    system: yes
   tags:
     - bootstrap
     - zookeeper
