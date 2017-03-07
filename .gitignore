@@ -1,7 +1,7 @@
 # Packer output, cache and temporary build files
 output
 packer_cache
-build
+builds
 iso
 # Vagrant droppings
 .vagrant
