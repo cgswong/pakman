@@ -1,0 +1,37 @@
+#!/bin/bash
+# DESC: Generate a dynamic MOTD.
+# Installation:
+#
+# 1.   vim /etc/ssh/sshd_config
+#      PrintMotd no
+#
+# 2.   vim /etc/pam.d/login
+#      # session optional pam_motd.so
+#
+# 3.   Drop this file at
+#      /usr/local/bin/dynmotd
+#
+# 4.   vim /etc/profile
+#      /usr/local/bin/dynmotd # Place at the bottom
+
+# System memory
+MEM_USED=$(free -m | grep "buffers/cache" | awk '{print $3" MB";}')
+MEM_TOTAL=$(free -m | grep "Mem" | awk '{print $2" MB";}')
+MEM_SWAP=$(free -m | tail -n 1 | awk '{print $3}')
+
+# Process count
+PRCS=`ps -A | wc -l`
+
+# System info
+CPU_LOAD=$(uptime | awk '{print $10,$11,$12}')
+SYS_UPTIME=$(uptime | awk '{print $3}')
+
+echo "
+===========================================================================
+ - CPU usage......: ${CPU_LOAD} (1, 5, 15 min)
+ - Memory (MB)....: ${MEM_USED} MB (used) / ${MEM_TOTAL} MB (total)
+ - Swap in use....: ${MEM_SWAP} MB
+ - Processes......: ${PRCS} running
+ - System uptime..: ${SYS_UPTIME} days
+===========================================================================
+"

@@ -1,0 +1,41 @@
+---
+# Handlers
+- name: reboot server
+  shell: "sleep 5s && reboot"
+  tags:
+    - reboot
+
+- name: stop networking
+  systemd:
+    name: "NetworkManager"
+    state: stopped
+    enabled: yes
+  tags:
+    - network
+
+- name: restart networkmgr
+  systemd:
+    name: "NetworkManager"
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+  tags:
+    - network
+
+- name: restart network
+  systemd:
+    name: "network"
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+  tags:
+    - network
+
+- name: restart sshd
+  systemd:
+    name: "sshd"
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+  tags:
+    - ssh

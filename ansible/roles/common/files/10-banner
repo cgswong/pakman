@@ -1,0 +1,8 @@
+#!/bin/bash
+# DESC: Print out banner
+
+cat << EOF
+       __|  __|_  )
+       _|  (     /   CentOS Linux Image
+      ___|\___|___|
+EOF

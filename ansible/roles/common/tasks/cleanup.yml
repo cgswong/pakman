@@ -1,0 +1,40 @@
+---
+# Cleanup
+- include: "{{ ansible_distribution }}-cleanup.yml"
+  tags:
+    - packages
+    - cleanup
+
+- name: Cleanup machine ID
+  command: "rm -f /etc/machine-id"
+  tags:
+    - cleanup
+    - bootstrap
+
+- name: Recreate machine ID
+  command: "systemd-machine-id-setup"
+  tags:
+    - cleanup
+    - bootstrap
+
+- name: Cleanup devices and files
+  command: "rm -rf {{ item }}"
+  with_items:
+    - '/lib/udev/rules.d/75-persistent-net-generator.rules'
+    - '/etc/udev/rules.d/70-persistent-net.rules'
+    - '/dev/.udev/'
+    - '/core*'
+    - '/tmp/*'
+    - '/root/.bash_history'
+  tags:
+    - cleanup
+    - bootstrap
+
+- name: Remove caches and logs
+  shell: "{{ item }}"
+  with_items:
+    - 'find /var/cache -type f -exec rm -rf {} \;'
+    - 'find /var/log -type f | while read f; do truncate -c -s 0 ${f} >/dev/null; done'
+  tags:
+    - cleanup
+    - bootstrap

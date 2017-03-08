@@ -1,0 +1,12 @@
+---
+# Fix sudo access for tty
+- name: Remove SUDO requiretty
+  replace:
+    backup: yes
+    dest: '/etc/sudoers'
+    regexp: '^(?!#)(.*)\s(requiretty)$'
+    replace: '#Defaults    requiretty'
+  register: sudo_tty
+  tags:
+    - bootstrap
+    - sudo

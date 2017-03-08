@@ -1,0 +1,85 @@
+---
+- name: Get IUS rpm
+  get_url:
+    url: "https://centos7.iuscommunity.org/ius-release.rpm"
+    dest: "/tmp/ius-release.rpm"
+  when: ansible_distribution == "CentOS"
+  tags:
+    - packages
+    - bootstrap
+    - updates
+
+- name: Install IUS repository
+  yum:
+    name: "/tmp/ius-release.rpm"
+    state: present
+  when: ansible_distribution == "CentOS"
+  tags:
+    - packages
+    - bootstrap
+    - updates
+
+- name: Install Python SCL
+  yum:
+    name: centos-release-scl
+    state: latest
+  when: ansible_distribution == "CentOS"
+  tags:
+    - packages
+    - bootstrap
+    - updates
+
+- name: Install OS packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items:
+    - acpid
+    - bash-completion
+    - bind-utils
+    - binutils
+    - bzip2
+    - centos-release
+    - chrony
+    - cloud-init
+    - cloud-utils-growpart
+    - deltarpm
+    - dkms
+    - dracut-config-generic
+    - expect
+    - gcc
+    - git
+    - grub2
+    - htop
+    - iftop
+    - java-1.8.0-openjdk-headless
+    - jq
+    - lsof
+    - make
+    - mlocate
+    - nfs-utils
+    - ntp
+    - perl
+    - python
+    - python-pip
+    - python27
+    - python36u
+    - rh-python35
+    - rsync
+    - screen
+    - sysstat
+    - tcpdump
+    - tmux
+    - traceroute
+    - tree
+    - unzip
+    - vim-enhanced
+    - wget
+    - yum-plugin-ovl
+    - yum-utils
+  when: ansible_distribution == "CentOS"
+  tags:
+    - packages
+    - bootstrap
+    - updates

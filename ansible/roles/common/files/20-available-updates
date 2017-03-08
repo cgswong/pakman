@@ -1,0 +1,8 @@
+#!/bin/bash
+# DESC: Check for available updates.
+
+OS_DISTRO=$(grep "^NAME=" /etc/os-release | cut -d= -f2 | tr -d \")
+if [[ "${OS_DISTRO}" == "CentOS Linux" ]]; then
+  yum --debuglevel 2 --security check-update 2>/dev/null | grep ' available$' \
+    && echo 'Run "sudo yum update" to apply all updates.'
+fi

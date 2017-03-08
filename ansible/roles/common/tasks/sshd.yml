@@ -1,0 +1,18 @@
+---
+# Update configurations for SSH
+- name: Turn off sshd DNS lookup and GSSAPI authentication to prevent timeout delays
+  lineinfile:
+    dest: "/etc/ssh/sshd_config"
+    regexp: "{{ item.regex }}"
+    line: "{{ item.sub }}"
+    state: present
+    insertafter: EOF
+  with_items:
+    - regex: '^UseDNS '
+      sub: 'UseDNS no'
+    - regex: '^GSSAPIAuthentication '
+      sub: 'GSSAPIAuthentication no'
+  notify: restart sshd
+  tags:
+    - bootstrap
+    - ssh

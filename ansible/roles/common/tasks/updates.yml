@@ -1,0 +1,7 @@
+---
+# Install updates
+- include: "{{ansible_distribution}}-updates.yml"
+  tags:
+    - packages
+    - bootstrap
+    - updates

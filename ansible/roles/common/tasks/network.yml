@@ -1,0 +1,44 @@
+---
+# Apply networking fixes
+- name: Add single-request-reopen to fix slow DNS for CentOS
+  lineinfile:
+    regexp: 'RES_OPTIONS="single-request-reopen"'
+    line: 'RES_OPTIONS="single-request-reopen"'
+    state: present
+    dest: "/etc/sysconfig/network"
+  when: ansible_distribution == 'CentOS'
+  notify: restart network
+  tags:
+    - bootstrap
+    - network
+
+- name: Install ACPID packaged service
+  package:
+    name: acpid
+    state: latest
+  register: acpid_install
+  tags:
+    - bootstrap
+    - network
+    - packages
+
+- name: Start ACPID service
+  systemd:
+    name: acpid
+    state: started
+    enabled: yes
+  when: acpid_install|succeeded
+  tags:
+    - bootstrap
+    - network
+
+- name: Make DHClient happy on Ubuntu
+  lineinfile:
+    regexp: "pre-up sleep"
+    line: "pre-up sleep 2"
+    state: present
+    dest: "/etc/network/interfaces"
+  when: ansible_distribution == 'Ubuntu'
+  tags:
+    - bootstrap
+    - network

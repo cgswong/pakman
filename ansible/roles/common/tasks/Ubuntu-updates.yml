@@ -1,0 +1,69 @@
+---
+# Install updates for Ubuntu
+- name: Update OS packages and distribution for Ubuntu
+  apt:
+    state: latest
+    update_cache: yes
+    upgrade: dist
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - packages
+    - bootstrap
+    - updates
+
+- name: Install unattended upgrades for Ubuntu
+  apt:
+    state: latest
+    name: "unattended-upgrades"
+    update_cache: yes
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - packages
+    - bootstrap
+    - updates
+
+- name: Enable unattended upgrades for Ubuntu
+  command: "dpkg-reconfigure --priority=low unattended-upgrades"
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - packages
+    - bootstrap
+    - updates
+
+- name: Disable release upgrades for Ubuntu
+  lineinfile:
+    regexp: "^Prompt=.*$"
+    line: "Prompt=never"
+    state: present
+    dest: "/etc/update-manager/release-upgrades"
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - packages
+    - bootstrap
+    - updates
+
+- name: Enable unattended upgrades for Ubuntu
+  lineinfile:
+    regexp: '^\/\/      "${distro_id}:${distro_codename}-security";'
+    line: '        "${distro_id}:${distro_codename}-security";'
+    state: present
+    dest: "/etc/apt/apt.conf.d/50unattended-upgrades"
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - packages
+    - bootstrap
+    - updates
+
+- name: Schedule unattended upgrades for Ubuntu
+  copy:
+    src: "10periodic"
+    dest: "/etc/apt/apt.conf.d/10periodic"
+    owner: root
+    group: root
+    mode: 0644
+    backup: yes
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - packages
+    - bootstrap
+    - updates

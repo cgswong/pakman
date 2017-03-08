@@ -1,0 +1,87 @@
+---
+# Cleanup
+- name: Delete linux headers for Ubuntu
+  command: "dpkg --list | awk '{ print $2 }' | grep 'linux-headers' | xargs sudo apt-get -y purge"
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - packages
+    - kernel
+    - cleanup
+
+- name: Delete linux source for Ubuntu
+  command: "dpkg --list | awk '{ print $2 }' | grep linux-source | xargs sudo apt-get -y purge"
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - packages
+    - kernel
+    - cleanup
+
+- name: Delete development packages for Ubuntu
+  command: "dpkg --list | awk '{ print $2 }' | grep -- '-dev$' | xargs sudo apt-get -y purge"
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - packages
+    - cleanup
+
+- name: Delete docs packages for Ubuntu
+  command: "dpkg --list | awk '{ print $2 }' | grep -- '-doc$' | xargs sudo apt-get -y purge"
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - packages
+    - cleanup
+
+- name: Delete X11 libraries for Ubuntu
+  apt:
+    name: "{{ item }}"
+    state: absent
+    purge: yes
+    update_cache: no
+  with_items:
+    - libx11-data
+    - xauth
+    - libxmuu1
+    - libxcb1
+    - libx11-6
+    - libxext6
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - packages
+    - cleanup
+
+- name: Delete obsolete networking and oddities for Ubuntu
+  apt:
+    name: "{{ item }}"
+    state: absent
+    purge: yes
+    autoremove: yes
+    update_cache: no
+  with_items:
+    - ppp
+    - pppconfig
+    - pppoeconf
+    - popularity-contest
+    - installation-report
+    - friendly-recovery
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - packages
+    - cleanup
+
+- name: Cleanup repo for Ubuntu
+  command: "apt-get -y autoclean"
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - packages
+    - cleanup
+
+- name: Cleanup networking interfaces for Ubuntu
+  replace:
+    regexp: "ens33"
+    replace: "ens32"
+    path: "/etc/network/interfaces"
+    backup: yes
+  ignore_errors: True
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - network
+    - cleanup

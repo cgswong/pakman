@@ -1,0 +1,16 @@
+---
+# Install metadata in image
+- name: Install metadata in image
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: 0644
+    owner: root
+    group: root
+  with_items:
+    - src: "image.meta.j2"
+      dest: "/etc/image.meta"
+    - src: "motd.tail.j2"
+      dest: "/etc/motd.tail"
+  tags:
+    - bootstrap
