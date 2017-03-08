@@ -1,0 +1,10 @@
+---
+# Install and configure Solr
+- name: Install Solr on host
+  hosts:  all
+  gather_facts: yes
+  serial: "{{ serial | default(1) }}"
+
+  roles:
+    - common
+    - solr
