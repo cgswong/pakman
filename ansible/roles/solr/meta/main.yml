@@ -1,0 +1,21 @@
+---
+dependencies: []
+
+galaxy_info:
+  author: cgswong
+  description: Apache Solr for Linux.
+  company: "CenSys, LLC"
+  license: "license (MIT)"
+  min_ansible_version: 2.2
+  platforms:
+    - name: EL
+      versions:
+      - 7
+    - name: Ubuntu
+      versions:
+      - xenial
+  galaxy_tags:
+    - development
+    - database
+    - search
+    - nosql
