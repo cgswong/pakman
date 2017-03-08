@@ -1,0 +1,87 @@
+#!bin/bash
+# DESC:  Cloud-init script run on startup to setup server. This script updates/installs OS and packages.
+
+OS_DISTRO=$(grep "^NAME=" /etc/os-release | cut -d= -f2 | tr -d \")
+if [[ "${OS_DISTRO}" == "Ubuntu" ]]; then
+  apt-get -y install \
+      apt-utils \
+      bash \
+      bash-completion \
+      build-essential \
+      ca-certificates \
+      chrony \
+      curl \
+      dkms \
+      etckeeper \
+      expect \
+      git \
+      htop \
+      iftop \
+      jq \
+      linux-headers-$(uname -r) \
+      linux-image-extra-$(uname -r) \
+      logrotate \
+      lsof \
+      mlocate \
+      nfs-common \
+      ntp \
+      openjdk-8-jdk \
+      openssh-server \
+      python \
+      python-dev \
+      python-pip \
+      python-protobuf \
+      python-setuptools \
+      python3-pip \
+      rsync \
+      screen \
+      software-properties-common \
+      ssh \
+      sudo \
+      ufw \
+      update-motd \
+      vim
+else
+  yum -y install \
+    bash-completion \
+    binutils \
+    centos-release \
+    chrony \
+    expect \
+    grub2 \
+    make \
+    mlocate \
+    python \
+    acpid \
+    bind-utils \
+    bzip2 \
+    cloud-init \
+    cloud-utils-growpart \
+    deltarpm \
+    dkms \
+    dracut-config-generic \
+    gcc \
+    git \
+    htop \
+    iftop \
+    java-1.8.0-openjdk-headless \
+    jq \
+    lsof \
+    make \
+    nfs-utils \
+    ntp \
+    perl \
+    python-pip \
+    python36u \
+    rsync \
+    screen \
+    sysstat \
+    tcpdump \
+    tmux \
+    traceroute \
+    tree \
+    vim-enhanced \
+    wget \
+    yum-plugin-ovl \
+    yum-utils
+fi

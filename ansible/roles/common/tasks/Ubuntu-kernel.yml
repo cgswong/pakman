@@ -1,0 +1,35 @@
+---
+# Install and update to latest kernel
+- name: Download latest kernel for Ubuntu
+  get_url:
+    url: "{{ kernel_url }}"
+    dest: "/tmp/{{ kernel_filename }}"
+  register: kernel_download
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - packages
+    - kernel
+
+- name: Install latest kernel for Ubuntu
+  command: "dpkg -i /tmp/*.deb"
+  register: kernel_update
+  when: ansible_distribution == "Ubuntu" and kernel_download|succeeded
+  tags:
+    - packages
+    - kernel
+
+- name: Update grub bootloader with latest kernel for Ubuntu
+  command: "update-grub"
+  when: ansible_distribution == "Ubuntu" and kernel_update|succeeded
+##  notify: reboot server
+  tags:
+    - packages
+    - kernel
+
+- name: Remove old kernels for Ubuntu
+  command: "dpkg --list | awk '{ print $2 }' | grep 'linux-image-.*-generic' | grep -v $(uname -r) | xargs sudo apt-get -y purge"
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - packages
+    - kernel
+    - cleanup

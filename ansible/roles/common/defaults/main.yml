@@ -1,0 +1,14 @@
+---
+# Kernel
+kernel_version: "4.9.0"
+kernel_version_main: "4.9"
+kernel_version_minor: "040900"
+kernel_version_date: "201612111631"
+kernel_filename: "linux-headers-{{kernel_version}}-{{kernel_version_minor}}_{{kernel_version}}-{{kernel_version_minor}}.{{kernel_version_date}}_all.deb"
+kernel_url: "http://kernel.ubuntu.com/~kernel-ppa/mainline/v{{kernel_version_main}}/{{kernel_filename}}"
+
+# Image
+img_version: "0.0.1"
+img_file: "CentOS-7.3_2017.01.21.01_20170121"
+img_stamp: "20170121"
+img_build_date: "20170121"

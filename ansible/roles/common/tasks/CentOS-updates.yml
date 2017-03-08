@@ -1,0 +1,29 @@
+---
+# Install updates for CentOS
+- name: Install yum-cron for CentOS
+  yum:
+    name: 'yum-cron'
+    state: latest
+    update_cache: yes
+  when: ansible_distribution == "CentOS"
+  tags:
+    - packages
+    - bootstrap
+    - updates
+
+- name: Disable release upgrades for CentOS
+  lineinfile:
+    regexp: "{{ item.regex }}"
+    line: "{{ item.sub }}"
+    state: present
+    dest: "/etc/yum/yum-cron.conf"
+  with_items:
+    - regex: '^update_cmd = '
+      sub: 'update_cmd = security'
+    - regex: '^apply_updates = no'
+      sub: 'apply_updates = yes'
+  when: ansible_distribution == "CentOS"
+  tags:
+    - packages
+    - bootstrap
+    - updates

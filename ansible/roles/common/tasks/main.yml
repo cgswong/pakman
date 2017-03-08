@@ -1,0 +1,44 @@
+---
+- include: metadata.yml
+  tags:
+    - bootstrap
+
+- include: sudo.yml
+  tags:
+    - sudo
+    - bootstrap
+
+- include: sshd.yml
+  tags:
+    - ssh
+    - bootstrap
+
+- include: "{{ ansible_distribution }}-packages.yml"
+  tags:
+    - always
+    - packages
+    - bootstrap
+
+- include: updates.yml
+  tags:
+    - packages
+    - bootstrap
+
+- include: network.yml
+  tags:
+    - packages
+    - network
+    - bootstrap
+
+- include: "{{ ansible_distribution }}-kernel.yml"
+  tags:
+    - packages
+    - kernel
+    - bootstrap
+
+- include: cleanup.yml
+  tags:
+    - packages
+    - kernel
+    - bootstrap
+    - cleanup

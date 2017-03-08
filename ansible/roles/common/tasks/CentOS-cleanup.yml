@@ -1,0 +1,49 @@
+---
+# Cleanup images
+- name: Clean repos for CentOS
+  command: "yum -y --enablerepo='*' clean all"
+  when: ansible_distribution == "CentOS"
+  tags:
+    - packages
+    - cleanup
+
+- name: Rebuild RPMDB for CentOS
+  command: "rpmdb --rebuilddb"
+  when: ansible_distribution == "CentOS"
+  tags:
+    - packages
+    - cleanup
+
+- name: Cleanup RPMDB for CentOS
+  command: "rm -f /var/lib/rpm/__db*"
+  when: ansible_distribution == "CentOS"
+  tags:
+    - packages
+    - cleanup
+
+- name: Cleanup networking for CentOS
+  command: "rm -rf $(ls /etc/sysconfig/network-scripts/ifcfg-* | grep -v ifcfg-lo)"
+  when: ansible_distribution == "CentOS"
+  tags:
+    - network
+    - cleanup
+
+- name: Cleanup NetworkManager files for CentOS
+  command: "rm -rf /var/lib/NetworkManager/*"
+  when: ansible_distribution == "CentOS"
+  tags:
+    - network
+    - cleanup
+
+- name: Recreate eth0 interface config for CentOS
+  copy:
+    src: "ifcfg-eth0"
+    dest: "/etc/sysconfig/network-scripts/ifcfg-eth0"
+    mode: 0644
+    owner: root
+    group: root
+  when: ansible_distribution == "CentOS"
+##  notify: restart networkmgr
+  tags:
+    - network
+    - cleanup

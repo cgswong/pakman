@@ -1,0 +1,60 @@
+---
+- name: Install OS packages
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+    cache_valid_time: 600
+  with_items:
+    - acpid
+    - apt-utils
+    - bash
+    - bash-completion
+    - binutils
+    - build-essential
+    - bzip2
+    - ca-certificates
+    - chrony
+    - cloud-init
+    - curl
+    - dkms
+    - etckeeper
+    - expect
+    - gcc
+    - git
+    - grub2
+    - htop
+    - iftop
+    - jq
+    - logrotate
+    - lsof
+    - make
+    - mlocate
+    - nfs-common
+    - ntp
+    - openjdk-8-jdk-headless
+    - openssh-server
+    - perl
+    - python2.7
+    - python-pip
+    - python-protobuf
+    - python-setuptools
+    - python3
+    - python3-pip
+    - rsync
+    - screen
+    - software-properties-common
+    - sysstat
+    - tcpdump
+    - tmux
+    - traceroute
+    - tree
+    - ufw
+    - update-motd
+    - vim
+    - wget
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - packages
+    - bootstrap
+    - updates

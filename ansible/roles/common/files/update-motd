@@ -1,0 +1,67 @@
+#!/bin/bash
+# DESC: Update MOTD.
+
+## Global variables
+PROG=${0##*/}
+CFG_DIR="/etc/${PROG}..d"
+DATA_DIR="/var/lib/${PROG}"
+
+## Functions
+log() {
+  echo "$(date +"[%F %X,000]") $(hostname) $1"
+}
+
+die() {
+  log "[FAIL] $1" >&2 && exit 1
+}
+
+[[ $(id -u) -ne 0 ]] && die "Not root user!"
+
+# Parse options
+case "$1" in
+  --enable)
+    rm -f ${DATA_DIR}/disabled
+    exit 0;;
+  --disable)
+    mkdir -p ${DATA_DIR}/
+    touch ${DATA_DIR}/disabled
+    exit 0;;
+  '' | --force);;
+  *)
+    echo "update-motd [option]"
+    echo "    --disable: Disable ${PROG}"
+    echo "    --enable: Enable ${PROG}"
+    echo "    --force: Ignore disabled setting"
+    exit 1;;
+esac
+
+# Just exit if  disabled and --force wasn't passed
+[[ -e ${DATA_DIR}/disabled ]] && [[ "$1" != "--force" ]] && exit 0
+
+if [[ -d ${CFG_DIR} ]]; then
+  TMPFILE=$(mktemp --tmpdir motd.XXXXX)
+  [[ -f /etc/motd.head ]] && cat /etc/motd.head >> ${TMPFILE}
+  # Wildcards in bash are expanded sorted
+  for part in ${CFG_DIR}/* ; do
+    # Run only if it's a regular file and executable
+    if [[ -f ${part} ]] && [[ -x ${part} ]]; then
+      TMPPART=$(mktemp --tmpdir motd.partXXXXX)
+      if (${part} > ${TMPPART}); then
+        cat ${TMPPART} >> ${TMPFILE}
+      fi
+      rm -f ${TMPPART}
+    fi
+  done
+  [[ -f /etc/motd.tail ]] && cat /etc/motd.tail >> ${TMPFILE}
+  # Only actually do the replacement if there is something in there
+  if [[ -s ${TMPFILE} ]]; then
+    # mktemp creates files with only user read-write permissions
+    chmod go+r ${TMPFILE}
+    mv ${TMPFILE} ${DATA_DIR}/motd
+  else
+    # Don't leave temp files
+    rm -f ${TMPFILE}
+  fi
+fi
+
+exit $?

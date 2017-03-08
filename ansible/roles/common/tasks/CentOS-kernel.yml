@@ -1,0 +1,89 @@
+---
+# Install and upgrade to latest kernel
+- name: Install ELREPO key for CentOS
+  rpm_key:
+    key: "https://www.elrepo.org/RPM-GPG-KEY-elrepo.org"
+    state: present
+  when: ansible_distribution == "CentOS"
+  tags:
+    - packages
+    - kernel
+    - bootstrap
+
+- name: Get ELREPO rpm
+  get_url:
+    url: "http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm"
+    dest: "/tmp/elrepo-release-7.0-2.el7.elrepo.noarch.rpm"
+  when: ansible_distribution == "CentOS"
+  tags:
+    - packages
+    - kernel
+    - bootstrap
+
+- name: Install ELREPO repository
+  yum:
+    name: "/tmp/elrepo-release-7.0-2.el7.elrepo.noarch.rpm"
+    state: present
+  when: ansible_distribution == "CentOS"
+  with_items:
+    - 'http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm'
+    - 'yum-plugin-fastestmirror'
+  tags:
+    - packages
+    - kernel
+    - bootstrap
+
+- name: Install YUM fastestmirror
+  yum:
+    name: "yum-plugin-fastestmirror"
+    state: latest
+    update_cache: yes
+  when: ansible_distribution == "CentOS"
+  tags:
+    - packages
+    - kernel
+    - bootstrap
+
+- name: Install latest kernel from ELREPO repo for CentOS
+  yum:
+    name: "kernel-ml"
+    state: latest
+    update_cache: yes
+    enablerepo: elrepo-kernel
+  when: ansible_distribution == "CentOS"
+  register: kernel_ml_update
+  tags:
+    - packages
+    - kernel
+    - bootstrap
+
+- name: Upgrade kernel for CentOS
+  yum:
+    name: "kernel"
+    state: latest
+    update_cache: yes
+  when: ansible_distribution == "CentOS"
+  register: kernel_update
+  tags:
+    - packages
+    - kernel
+    - bootstrap
+
+- name: Update grub bootloader with latest kernel for CentOS
+  command: "grub2-set-default 0"
+  when: ansible_distribution == "CentOS" and (kernel_update|succeeded or kernel_ml_update|succeeded)
+  register: reboot
+##  notify: reboot server
+  tags:
+    - packages
+    - kernel
+    - bootstrap
+
+- name: Remove old kernels for CentOS
+  command: "package-cleanup -y --oldkernels --count=1"
+  when: ansible_distribution == "CentOS" and (kernel_update|succeeded or kernel_ml_update|succeeded) and reboot|succeeded
+  tags:
+    - packages
+    - kernel
+    - bootstrap
+    - cleanup
