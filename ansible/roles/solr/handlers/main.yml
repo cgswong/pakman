@@ -1,0 +1,15 @@
+---
+- name: restart solr
+  service:
+    name: "{{ solr_service_name }}"
+    state: restarted
+    sleep: 5
+  tags:
+    - solr
+    - service
+
+- name: reload daemon
+  command: "systemctl daemon-reload"
+  tags:
+    - solr
+    - service

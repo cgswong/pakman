@@ -1,0 +1,21 @@
+---
+- name: Ensure Solr user group exists
+  group:
+    name: "{{ solr_user_group }}"
+    state: present
+  tags:
+    - bootstrap
+    - solr
+
+- name: Ensure Solr user exists
+  user:
+    name: "{{ solr_user }}"
+    state: present
+    group: "{{ solr_user_group }}"
+    comment: "Solr owner"
+    home: "/home/{{ solr_user }}"
+    createhome: yes
+    shell: "/bin/bash"
+  tags:
+    - bootstrap
+    - solr

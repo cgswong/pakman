@@ -1,0 +1,59 @@
+---
+solr_user_group: solr
+solr_user: solr
+
+solr_version: "6.4.1"
+solr_download_file: "solr-{{ solr_version }}.tgz"
+solr_download_url: "https://archive.apache.org/dist/lucene/solr"
+solr_download_link: "{{ solr_download_url }}/{{ solr_version }}/{{ solr_download_file }}"
+
+# Enable to start service
+##solr_start_service: true
+solr_service_name: solr
+solr_install_base_dir: "/opt"
+solr_install_dir: "/opt/{{ solr_service_name }}"
+solr_home: "/var/lib/solr"
+solr_data_dir: "{{ solr_home }}/data"
+solr_port: "8983"
+
+solr_config_file: /etc/default/solr.in.sh
+
+solr_pid_dir: "/var/run/solr"
+solr_pid_file: "{{ solr_pid_dir }}/solr-{{ solr_port }}.pid"
+
+solr_jvm_min: "512M"
+solr_jvm_max: "512M"
+
+solr_timezone: "UTC"
+
+solr_enable_jmx: true
+solr_jmx_port: 18983
+
+solr_log_prop_file: "{{ solr_home }}/log4j.properties"
+solr_log_dir: "/var/log/solr"
+
+solr_console_log_level: "INFO"
+solr_log_level: "INFO"
+solr_trace_level: "TRACE"
+solr_root_logger: "{{ solr_log_level }},ROLLINGFILE"
+solr_zk_log_level: WARN
+solr_hadoop_log_level: WARN
+solr_eclipse_log_level: WARN
+solr_eclipse_server_log_level: WARN
+solr_eclipse_conn_log_level: WARN
+# Either OFF or INFO
+solr_infostream_log_level: INFO
+
+# Rolling file appender settings
+solr_rolling_log_file_max_size: "20MB"
+solr_rolling_log_file_max_count: 10
+
+solr_cores:
+  - collection1
+
+## ZooKeeper
+solr_zk_host: localhost
+solr_zk_port: 2181
+solr_zk_chroot: solr
+solr_zk_conn: "{{ solr_zk_host }}:{{ solr_zk_port }}/{{ solr_zk_chroot }}"
+solr_zk_timeout: 15000

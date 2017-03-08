@@ -1,0 +1,98 @@
+---
+- include: user.yml
+
+- name: Download Solr
+  get_url:
+    url: "{{ solr_download_link }}"
+    dest: "/tmp/{{ solr_download_file }}"
+  tags:
+    - solr
+    - bootstrap
+
+- name: Unpack Solr download
+  unarchive:
+    src: "/tmp/{{ solr_download_file }}"
+    dest: "{{ solr_install_base_dir }}"
+    creates: "{{ solr_install_dir }}/solr-{{ solr_version }}"
+    copy: no
+    owner: "{{ solr_user }}"
+    group: "{{ solr_user_group }}"
+  tags:
+    - solr
+    - bootstrap
+
+- name: Create Solr dir link
+  file:
+    src: "{{ solr_install_base_dir }}/solr-{{ solr_version }}"
+    path: "{{ solr_install_dir }}"
+    owner: "{{ solr_user }}"
+    group: "{{ solr_user_group }}"
+    state: link
+  tags:
+    - bootstrap
+    - solr
+
+- name: "Create Solr {{ item }} directory"
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ solr_user }}"
+    group: "{{ solr_user_group }}"
+  with_items:
+    - "{{ solr_pid_dir }}"
+    - "{{ solr_data_dir }}"
+    - "{{ solr_log_dir }}"
+  tags:
+    - bootstrap
+    - solr
+
+- name: Deploy Solr config files
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dst }}"
+    owner: "{{ solr_user }}"
+    group: "{{ solr_user_group }}"
+  with_items:
+    - src: 'solr.in.sh.j2'
+      dst: '/etc/default/solr.in.sh'
+    - src: 'log4j.properties.j2'
+      dst: "{{ solr_home }}/log4j.properties"
+  tags:
+    - deploy
+    - bootstrap
+    - solr
+
+- name: Deploy Solr service
+  template:
+    src: "solr.service.j2"
+    dest: "/etc/systemd/system/solr.service"
+    owner: "root"
+    group: "root"
+  notify:
+    - reload daemon
+  tags:
+    - deploy
+    - bootstrap
+    - solr
+
+- name: Ensure Solr is enabled
+  service:
+    name: "{{ solr_service_name }}"
+    enabled: yes
+  tags:
+    - bootstrap
+    - solr
+
+# Create cores, if any are configured.
+- include: cores.yml
+  when: solr_cores is defined
+
+- name: Start Solr service
+  service:
+    name: "{{ solr_service_name }}"
+    enabled: yes
+    status: started
+  when: solr_start_service is defined
+  tags:
+    - deploy
+    - solr
