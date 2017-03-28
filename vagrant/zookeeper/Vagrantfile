@@ -6,11 +6,11 @@ Vagrant.configure("2") do |config|
   # For a complete reference, please see the online documentation at
   # https://docs.vagrantup.com.
 
-  config.vm.define "zookeeper-kv"
+  config.vm.define "zookeeper"
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "ZooKeeper-CentOS_7.3"
+  config.vm.box = "CentOS-7.3-ZooKeeper"
 
   # Set the username that Vagrant will SSH as. We change this from the default
   # `vagrant` to the OS distro
@@ -53,4 +53,9 @@ Vagrant.configure("2") do |config|
     v.customize ["modifyvm", :id, "--accelerate3d", "off"]
     v.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
   end
+  # Configure provisioning
+  config.vm.provision "shell", inline: <<-SHELL
+    yum -y update
+    update-ca-trust
+  SHELL
 end
