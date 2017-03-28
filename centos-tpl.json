@@ -1,59 +1,166 @@
 {
+  "_comment": "CentOS Packer template, `packer build centos-tpl.json`",
   "variables": {
-    "cpus": "1",
-    "memory": "1024",
-    "disk_size": "25600",
-    "headless": "false",
-    "ssh_name": "vagrant",
-    "ssh_pass": "vagrant",
-    "hostname": "centos",
-    "iso_url": "http://mirrors.kernel.org/centos/7.2.1511/isos/x86_64/CentOS-7-x86_64-NetInstall-1511.iso",
-    "iso_checksum": "9ed9ffb5d89ab8cca834afce354daa70a21dcb410f58287d6316259ff89758f5"
-  },
-  "builders": [{
-    "type": "virtualbox-iso",
-    "guest_os_type": "RedHat_64",
-    "iso_url": "{{user `iso_url`}}",
-    "iso_checksum": "{{user `iso_checksum`}}",
-    "iso_checksum_type": "sha256",
-    "output_directory": "output/centos-7.2-x86_64",
-    "vm_name": "centos-7.2-x86_64",
-    "disk_size": "{{user `disk_size`}}",
-    "headless": "{{user `headless`}}",
-    "http_directory": "http",
-    "boot_wait": "5s",
-    "boot_command": [
-      "<esc>",
-      "<wait>",
-      "linux inst.ks=http://{{.HTTPIP}}:{{.HTTPPort}}/centos-7.2/ks.cfg biosdevname=0 net.ifnames=0",
-      "<enter>"
-    ],
+    "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+    "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+    "aws_region": "{{env `AWS_REGION`}}",
+    "aws_vpc_id": "{{env `AWS_VPC_ID`}}",
+    "aws_subnet_id": "{{env `AWS_SUBNET_ID`}}",
+    "aws_instance_type": "m4.large",
+    "aws_shutdown_action": "stop",
+    "aws_username": "centos",
+    "aws_volume_type": "gp2",
+    "aws_ami_desc": "CentOS 7.3 with Solr 6.5.0",
+    "ansible_dir": "{{template_dir}}/ansible",
+    "scripts_dir": "{{template_dir}}/scripts",
+    "ks_cfg_file": "centos/centos-ks.cfg",
+    "stage_dir": "/tmp/packer-provisioner-ansible-local",
+    "docker": "false",
+    "distro": "centos-7.3",
+    "distro_desc": "CentOS 7.3",
+    "distro_name": "centos",
+    "os_cpus": "1",
+    "os_memory": "2048",
+    "disk_size": "40960",
+    "boot_wait_time": "5s",
     "ssh_timeout": "20m",
-    "ssh_username": "{{user `ssh_name`}}",
-    "ssh_password": "{{user `ssh_pass`}}",
-    "shutdown_command": "sudo systemctl poweroff",
-    "format": "ova",
-    "vboxmanage": [
-      ["modifyvm", "{{.Name}}", "--memory", "{{user `memory`}}"],
-      ["modifyvm", "{{.Name}}", "--cpus", "{{user `cpus`}}"]
-    ]
-  }],
-  "provisioners": [{
-    "type": "shell",
-    "scripts": [
-      "scripts/centos-7.2/repo.sh",
-      "scripts/centos/vbox.sh",
-      "scripts/common/vagrant.sh",
-      "scripts/common/sshd.sh",
-      "scripts/centos-7.2/locale.sh",
-      "scripts/centos-7.2/cleanup.sh",
-      "scripts/common/minimize.sh"
-    ]
-  }],
-  "post-processors": [{
-    "type": "vagrant",
-    "compression_level": 9,
-    "keep_input_artifact": true,
-    "output": "builds/centos-7.2-x86_64-{{.Provider}}.box"
-  }]
+    "headless": "true",
+    "http_proxy": "{{env `http_proxy`}}",
+    "https_proxy": "{{env `https_proxy`}}",
+    "iso_checksum": "27bd866242ee058b7a5754e83d8ee8403e216b93d130d800852a96f41c34d86a",
+    "iso_checksum_type": "sha256",
+    "iso_name": "CentOS-7-x86_64-Minimal-1611.iso",
+    "iso_url": "http://mirrors.kernel.org/centos/7.3.1611/isos/x86_64/CentOS-7-x86_64-Minimal-1611.iso",
+    "vagrant_password": "vagrant",
+    "vagrant_username": "vagrant",
+    "vagrantfile_tpl": "{{template_dir}}/vagrant/solr/Vagrantfile",
+    "vbox_guest_os_type": "RedHat_64",
+    "vbox_nictype": "virtio",
+    "vbox_paravirtprovider": "default",
+    "version": "{{isotime \"2006.01.02.15\"}}",
+    "vm_name": "CentOS-7.3",
+    "service": "base",
+    "service_version": "{{timestamp}}"
+  },
+  "builders": [
+    {
+       "type": "virtualbox-iso",
+       "boot_command": [
+         "<tab> text ks=http://{{.HTTPIP}}:{{.HTTPPort}}/{{user `ks_cfg_file`}}<enter><wait>"
+       ],
+       "boot_wait": "{{user `boot_wait_time`}}",
+       "communicator": "ssh",
+       "disk_size": "{{user `disk_size`}}",
+       "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+       "guest_os_type": "{{user `vbox_guest_os_type`}}",
+       "hard_drive_interface": "sata",
+       "headless": "{{user `headless`}}",
+       "http_directory": "{{template_dir}}/http",
+       "iso_checksum": "{{user `iso_checksum`}}",
+       "iso_checksum_type": "{{user `iso_checksum_type`}}",
+       "iso_urls": [
+         "{{template_dir}}/iso/{{user `iso_name`}}",
+         "{{user `iso_url`}}"
+       ],
+       "output_directory": "{{template_dir}}/output/{{user `vm_name`}}-{{user `version`}}-{{user `service`}}-{{.Provider}}",
+       "shutdown_command": "sudo shutdown -P now",
+       "ssh_password": "{{user `vagrant_password`}}",
+       "ssh_username": "{{user `vagrant_username`}}",
+       "ssh_timeout": "{{user `ssh_timeout`}}",
+       "vboxmanage": [
+         [ "modifyvm", "{{.Name}}", "--memory", "{{user `os_memory`}}" ],
+         [ "modifyvm", "{{.Name}}", "--cpus", "{{user `os_cpus`}}" ],
+         [ "modifyvm", "{{.Name}}", "--audio", "none" ],
+         [ "modifyvm", "{{.Name}}", "--vram", "10" ],
+         [ "modifyvm", "{{.Name}}", "--paravirtprovider", "{{user `vbox_paravirtprovider`}}" ],
+         [ "modifyvm", "{{.Name}}", "--nictype1", "{{user `vbox_nictype`}}" ]
+       ],
+       "virtualbox_version_file": ".vbox_version",
+       "vm_name": "{{user `vm_name`}}-{{user `service`}}"
+    },
+    {
+      "type": "amazon-ebs",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "region": "{{user `aws_region`}}",
+      "ami_description": "{{user `aws_ami_desc`}}",
+      "ami_name": "{{user `vm_name`}}-{{user `version`}}-{{user `service`}}-{{user `service_version`}}",
+      "ami_virtualization_type": "hvm",
+      "enhanced_networking": "true",
+      "associate_public_ip_address": true,
+      "instance_type": "{{user `aws_instance_type`}}",
+      "shutdown_behavior": "{{user `aws_shutdown_action`}}",
+      "source_ami_filter": {
+        "filters": {
+          "virtualization-type": "hvm",
+          "architecture": "x86_64",
+          "state": "available",
+          "name": "CentOS Linux 7 x86_64 HVM EBS*",
+          "root-device-type": "ebs"
+        },
+        "owners": ["679593333241","246540503590"],
+        "most_recent": true
+      },
+      "communicator": "ssh",
+      "ssh_pty": true,
+      "ssh_private_ip": false,
+      "ssh_timeout": "{{user `ssh_timeout`}}",
+      "ssh_username": "{{user `aws_username`}}",
+      "subnet_id": "{{user `aws_subnet_id`}}",
+      "vpc_id": "{{user `aws_vpc_id`}}",
+      "user_data_file": "{{user `aws_user_data_file`}}",
+      "tags": {
+        "meta:image": "image_version:{{user `version`}}/image_stamp:{{timestamp}}/image_desc:{{user `aws_ami_desc`}}",
+        "Name": "{{user `vm_name`}}-{{user `version`}}-{{user `service`}}-{{user `service_version`}}"
+      },
+      "ami_block_device_mappings": [
+        {
+          "delete_on_termination": true,
+          "device_name": "/dev/xvda",
+          "encrypted": true,
+          "volume_size": "40",
+          "volume_type": "{{user `aws_volume_type`}}"
+        }
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "execute_command": "chmod +x {{.Path}} ; {{.Vars}} sudo -E bash '{{.Path}}'",
+      "environment_vars": [
+        "http_proxy={{user `http_proxy`}}",
+        "https_proxy={{user `https_proxy`}}"
+      ],
+      "override": {
+        "amazon-ebs": {
+          "execute_command": "chmod +x {{.Path}} ; {{.Vars}} sudo -E bash '{{.Path}}'"
+        }
+      },
+      "scripts": [
+        "{{user `scripts_dir`}}/ansible-cfg"
+      ]
+    },
+    {
+      "type": "ansible-local",
+      "playbook_dir": "{{user `ansible_dir`}}",
+      "playbook_file": "{{user `ansible_dir`}}/playbooks/solr.yml",
+      "staging_directory": "{{user `stage_dir`}}",
+      "extra_arguments": [ "--tags", "bootstrap,vbox" ]
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "compression_level": 9,
+      "keep_input_artifact": false,
+      "output": "{{template_dir}}/builds/{{user `vm_name`}}-{{user `version`}}-{{user `service`}}-{{.Provider}}.box",
+      "vagrantfile_template": "{{ user `vagrantfile_tpl` }}"
+    },
+    {
+      "type": "checksum",
+      "checksum_types": ["sha256"],
+      "output": "{{template_dir}}/builds/{{user `vm_name`}}-{{user `version`}}-{{user `service`}}-{{.Provider}}.asc"
+    }
+  ]
 }

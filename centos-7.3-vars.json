@@ -13,5 +13,7 @@
   "ks_cfg_file": "centos/centos-ks.cfg",
   "os_cpus": "1",
   "os_memory": "2048",
-  "vm_name": "CentOS-7.3"
+  "vm_name": "CentOS-7.3",
+  "service": "base",
+  "service_version": "{{timestamp}}"
 }
