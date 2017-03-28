@@ -1,5 +1,5 @@
 {
-  "_comment": "CentOS ZooKeeper Packer template, `packer build zk-centos-tpl.json`",
+  "_comment": "CentOS Consul Packer template, `packer build consul-centos-tpl.json`",
   "variables": {
     "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
     "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
@@ -10,7 +10,7 @@
     "aws_shutdown_action": "stop",
     "aws_username": "centos",
     "aws_volume_type": "gp2",
-    "aws_ami_desc": "CentOS 7.3 with ZooKeeper 3.4.9",
+    "aws_ami_desc": "CentOS 7.3 with Consul 6.5.0",
     "ansible_dir": "{{template_dir}}/ansible",
     "scripts_dir": "{{template_dir}}/scripts",
     "ks_cfg_file": "centos/centos-ks.cfg",
@@ -33,14 +33,15 @@
     "iso_url": "http://mirrors.kernel.org/centos/7.3.1611/isos/x86_64/CentOS-7-x86_64-Minimal-1611.iso",
     "vagrant_password": "vagrant",
     "vagrant_username": "vagrant",
-    "vagrantfile_tpl": "{{template_dir}}/vagrant/zookeeper/Vagrantfile",
+    "vagrantfile_tpl": "{{template_dir}}/vagrant/consul/Vagrantfile",
     "vbox_guest_os_type": "RedHat_64",
     "vbox_nictype": "virtio",
     "vbox_paravirtprovider": "default",
     "version": "{{isotime \"2006.01.02.15\"}}",
     "vm_name": "CentOS-7.3",
-    "service": "ZooKeeper",
-    "service_version": "3.4.9"  },
+    "service": "Consul",
+    "service_version": "6.5.0"
+  },
   "builders": [
     {
       "type": "virtualbox-iso",
@@ -143,9 +144,9 @@
     {
       "type": "ansible-local",
       "playbook_dir": "{{user `ansible_dir`}}",
-      "playbook_file": "{{user `ansible_dir`}}/playbooks/zookeeper.yml",
+      "playbook_file": "{{user `ansible_dir`}}/playbooks/consul.yml",
       "staging_directory": "{{user `stage_dir`}}",
-      "extra_arguments": [ "--tags", "bootstrap,zookeeper" ]
+      "extra_arguments": [ "--tags", "bootstrap,consul" ]
     }
   ],
   "post-processors": [

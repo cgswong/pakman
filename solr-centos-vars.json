@@ -1,6 +1,6 @@
 {
-  "_comment": "Variable file for CentOS 7.3 Packer build, `packer build -var-file=centos-vars-7.3.json centos-tpl.json`",
-  "aws_ami_desc": "CentOS 7.3",
+  "_comment": "Variable file for CentOS 7.3 Solr Packer build, `packer build -var-file=solr-centos-vars.json centos-tpl.json`",
+  "aws_ami_desc": "CentOS 7.3 with Solr 6.5.0",
   "disk_size": "40960",
   "distro": "centos-7.3",
   "distro_desc": "CentOS 7.3",
@@ -13,5 +13,7 @@
   "ks_cfg_file": "centos/centos-ks.cfg",
   "os_cpus": "1",
   "os_memory": "2048",
-  "vm_name": "CentOS-7.3"
+  "vm_name": "CentOS-7.3",
+  "service": "Solr",
+  "service_version": "6.5.0"
 }

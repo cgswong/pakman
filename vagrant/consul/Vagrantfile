@@ -6,11 +6,11 @@ Vagrant.configure("2") do |config|
   # For a complete reference, please see the online documentation at
   # https://docs.vagrantup.com.
 
-  config.vm.define "solr-centos"
+  config.vm.define "consul-centos"
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "CentOS-7.3-Solr"
+  config.vm.box = "CentOS-7.3-Consul"
 
   # Set the username that Vagrant will SSH as. We change this from the default
   # `vagrant` to the OS distro
