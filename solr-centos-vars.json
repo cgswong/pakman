@@ -1,5 +1,5 @@
 {
-  "_comment": "Variable file for CentOS 7.3 Solr Packer build, `packer build -var-file=solr-centos-vars.json centos-tpl.json`",
+  "_comment": "Variable file for CentOS 7.3 Solr Packer build, `packer build -var-file=solr-centos-vars.json solr-centos-tpl.json`",
   "aws_ami_desc": "CentOS 7.3 with Solr 6.5.0",
   "disk_size": "40960",
   "distro": "centos-7.3",
