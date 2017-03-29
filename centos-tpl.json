@@ -1,5 +1,5 @@
 {
-  "_comment": "CentOS Packer template, `packer build centos-tpl.json`",
+  "_comment": "CentOS Base Packer template, `packer build centos-tpl.json`",
   "variables": {
     "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
     "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
@@ -10,7 +10,9 @@
     "aws_shutdown_action": "stop",
     "aws_username": "centos",
     "aws_volume_type": "gp2",
-    "aws_ami_desc": "CentOS 7.3",
+    "vm_description": "CentOS 7.3",
+    "service": "base",
+    "service_version": "{{timestamp}}",
     "ansible_dir": "{{template_dir}}/ansible",
     "scripts_dir": "{{template_dir}}/scripts",
     "ks_cfg_file": "centos/centos-ks.cfg",
@@ -38,52 +40,56 @@
     "vbox_nictype": "virtio",
     "vbox_paravirtprovider": "default",
     "version": "{{isotime \"2006.01.02.15\"}}",
-    "vm_name": "CentOS-7.3",
-    "service": "base",
-    "service_version": "{{timestamp}}"
+    "vm_name": "CentOS-7.3"
   },
   "builders": [
     {
-       "type": "virtualbox-iso",
-       "boot_command": [
-         "<tab> text ks=http://{{.HTTPIP}}:{{.HTTPPort}}/{{user `ks_cfg_file`}}<enter><wait>"
-       ],
-       "boot_wait": "{{user `boot_wait_time`}}",
-       "communicator": "ssh",
-       "disk_size": "{{user `disk_size`}}",
-       "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
-       "guest_os_type": "{{user `vbox_guest_os_type`}}",
-       "hard_drive_interface": "sata",
-       "headless": "{{user `headless`}}",
-       "http_directory": "{{template_dir}}/http",
-       "iso_checksum": "{{user `iso_checksum`}}",
-       "iso_checksum_type": "{{user `iso_checksum_type`}}",
-       "iso_urls": [
-         "{{template_dir}}/iso/{{user `iso_name`}}",
-         "{{user `iso_url`}}"
-       ],
-       "output_directory": "{{template_dir}}/output/{{user `vm_name`}}-{{user `version`}}-{{user `service`}}-{{.Provider}}",
-       "shutdown_command": "sudo shutdown -P now",
-       "ssh_password": "{{user `vagrant_password`}}",
-       "ssh_username": "{{user `vagrant_username`}}",
-       "ssh_timeout": "{{user `ssh_timeout`}}",
-       "vboxmanage": [
-         [ "modifyvm", "{{.Name}}", "--memory", "{{user `os_memory`}}" ],
-         [ "modifyvm", "{{.Name}}", "--cpus", "{{user `os_cpus`}}" ],
-         [ "modifyvm", "{{.Name}}", "--audio", "none" ],
-         [ "modifyvm", "{{.Name}}", "--vram", "10" ],
-         [ "modifyvm", "{{.Name}}", "--paravirtprovider", "{{user `vbox_paravirtprovider`}}" ],
-         [ "modifyvm", "{{.Name}}", "--nictype1", "{{user `vbox_nictype`}}" ]
-       ],
-       "virtualbox_version_file": ".vbox_version",
-       "vm_name": "{{user `vm_name`}}-{{user `service`}}"
+      "type": "virtualbox-iso",
+      "boot_command": [
+        "<tab> text ks=http://{{.HTTPIP}}:{{.HTTPPort}}/{{user `ks_cfg_file`}}<enter><wait>"
+      ],
+      "boot_wait": "{{user `boot_wait_time`}}",
+      "communicator": "ssh",
+      "disk_size": "{{user `disk_size`}}",
+      "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+      "guest_os_type": "{{user `vbox_guest_os_type`}}",
+      "hard_drive_interface": "sata",
+      "headless": "{{user `headless`}}",
+      "http_directory": "{{template_dir}}/http",
+      "iso_checksum": "{{user `iso_checksum`}}",
+      "iso_checksum_type": "{{user `iso_checksum_type`}}",
+      "iso_urls": [
+        "{{template_dir}}/iso/{{user `iso_name`}}",
+        "{{user `iso_url`}}"
+      ],
+      "output_directory": "{{template_dir}}/output/{{user `vm_name`}}-{{user `version`}}-{{user `service`}}-{{build_type}}",
+      "shutdown_command": "sudo shutdown -P now",
+      "ssh_password": "{{user `vagrant_password`}}",
+      "ssh_username": "{{user `vagrant_username`}}",
+      "ssh_timeout": "{{user `ssh_timeout`}}",
+      "vboxmanage": [
+        [ "modifyvm", "{{.Name}}", "--memory", "{{user `os_memory`}}" ],
+        [ "modifyvm", "{{.Name}}", "--cpus", "{{user `os_cpus`}}" ],
+        [ "modifyvm", "{{.Name}}", "--audio", "none" ],
+        [ "modifyvm", "{{.Name}}", "--vram", "10" ],
+        [ "modifyvm", "{{.Name}}", "--paravirtprovider", "{{user `vbox_paravirtprovider`}}" ],
+        [ "modifyvm", "{{.Name}}", "--nictype1", "{{user `vbox_nictype`}}" ]
+      ],
+      "virtualbox_version_file": ".vbox_version",
+      "export_opts": [
+        "--manifest",
+        "--vsys", "0",
+        "--description", "{{user `vm_description`}}",
+        "--version", "{{user `version`}}"
+      ],
+      "vm_name": "{{user `vm_name`}}-{{user `service`}}"
     },
     {
       "type": "amazon-ebs",
       "access_key": "{{user `aws_access_key`}}",
       "secret_key": "{{user `aws_secret_key`}}",
       "region": "{{user `aws_region`}}",
-      "ami_description": "{{user `aws_ami_desc`}}",
+      "ami_description": "{{user `vm_description`}}",
       "ami_name": "{{user `vm_name`}}-{{user `version`}}-{{user `service`}}-{{user `service_version`}}",
       "ami_virtualization_type": "hvm",
       "enhanced_networking": "true",
@@ -144,7 +150,7 @@
     {
       "type": "ansible-local",
       "playbook_dir": "{{user `ansible_dir`}}",
-      "playbook_file": "{{user `ansible_dir`}}/playbooks/base.yml",
+      "playbook_file": "{{user `ansible_dir`}}/playbooks/common.yml",
       "staging_directory": "{{user `stage_dir`}}",
       "extra_arguments": [ "--tags", "bootstrap,common" ]
     }
@@ -154,13 +160,15 @@
       "type": "vagrant",
       "compression_level": 9,
       "keep_input_artifact": false,
+      "only": ["virtualbox-iso"],
       "output": "{{template_dir}}/builds/{{user `vm_name`}}-{{user `version`}}-{{user `service`}}-{{.Provider}}.box",
-      "vagrantfile_template": "{{ user `vagrantfile_tpl` }}"
+      "vagrantfile_template": "{{user `vagrantfile_tpl`}}"
     },
     {
       "type": "checksum",
       "checksum_types": ["sha256"],
-      "output": "{{template_dir}}/builds/{{user `vm_name`}}-{{user `version`}}-{{user `service`}}-{{.Provider}}.asc"
+      "only": ["virtualbox-iso"],
+      "output": "{{template_dir}}/builds/{{user `vm_name`}}-{{user `version`}}-{{user `service`}}-{{build_type}}.sha256sum.txt.asc"
     }
   ]
 }

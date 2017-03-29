@@ -73,7 +73,6 @@
   command: "grub2-set-default 0"
   when: ansible_distribution == "CentOS" and (kernel_update|succeeded or kernel_ml_update|succeeded)
   register: reboot
-##  notify: reboot server
   tags:
     - packages
     - kernel

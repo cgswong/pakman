@@ -1,10 +1,5 @@
 ---
 # Handlers
-- name: reboot server
-  shell: "sleep 5s && reboot"
-  tags:
-    - reboot
-
 - name: stop networking
   systemd:
     name: "NetworkManager"

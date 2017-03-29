@@ -21,7 +21,6 @@
 - name: Update grub bootloader with latest kernel for Ubuntu
   command: "update-grub"
   when: ansible_distribution == "Ubuntu" and kernel_update|succeeded
-##  notify: reboot server
   tags:
     - packages
     - kernel
