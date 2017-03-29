@@ -10,7 +10,9 @@
     "aws_shutdown_action": "stop",
     "aws_username": "centos",
     "aws_volume_type": "gp2",
-    "aws_ami_desc": "CentOS 7.3 with Consul 6.5.0",
+    "vm_description": "CentOS 7.3 with Consul 0.7.5",
+    "service": "Consul",
+    "service_version": "0.7.5",
     "ansible_dir": "{{template_dir}}/ansible",
     "scripts_dir": "{{template_dir}}/scripts",
     "ks_cfg_file": "centos/centos-ks.cfg",
@@ -38,9 +40,7 @@
     "vbox_nictype": "virtio",
     "vbox_paravirtprovider": "default",
     "version": "{{isotime \"2006.01.02.15\"}}",
-    "vm_name": "CentOS-7.3",
-    "service": "Consul",
-    "service_version": "6.5.0"
+    "vm_name": "CentOS-7.3"
   },
   "builders": [
     {
@@ -62,7 +62,7 @@
         "{{template_dir}}/iso/{{user `iso_name`}}",
         "{{user `iso_url`}}"
       ],
-      "output_directory": "{{template_dir}}/output/{{user `vm_name`}}-{{user `version`}}-{{user `service`}}-{{.Provider}}",
+      "output_directory": "{{template_dir}}/output/{{user `vm_name`}}-{{user `version`}}-{{user `service`}}-{{build_type}}",
       "shutdown_command": "sudo shutdown -P now",
       "ssh_password": "{{user `vagrant_password`}}",
       "ssh_username": "{{user `vagrant_username`}}",
@@ -76,6 +76,12 @@
         [ "modifyvm", "{{.Name}}", "--nictype1", "{{user `vbox_nictype`}}" ]
       ],
       "virtualbox_version_file": ".vbox_version",
+      "export_opts": [
+        "--manifest",
+        "--vsys", "0",
+        "--description", "{{user `vm_description`}}",
+        "--version", "{{user `version`}}"
+      ],
       "vm_name": "{{user `vm_name`}}-{{user `service`}}"
     },
     {
@@ -83,7 +89,7 @@
       "access_key": "{{user `aws_access_key`}}",
       "secret_key": "{{user `aws_secret_key`}}",
       "region": "{{user `aws_region`}}",
-      "ami_description": "{{user `aws_ami_desc`}}",
+      "ami_description": "{{user `vm_description`}}",
       "ami_name": "{{user `vm_name`}}-{{user `version`}}-{{user `service`}}-{{user `service_version`}}",
       "ami_virtualization_type": "hvm",
       "enhanced_networking": "true",
@@ -154,13 +160,15 @@
       "type": "vagrant",
       "compression_level": 9,
       "keep_input_artifact": false,
+      "only": ["virtualbox-iso"],
       "output": "{{template_dir}}/builds/{{user `vm_name`}}-{{user `version`}}-{{user `service`}}-{{.Provider}}.box",
-      "vagrantfile_template": "{{ user `vagrantfile_tpl` }}"
+      "vagrantfile_template": "{{user `vagrantfile_tpl`}}"
     },
     {
       "type": "checksum",
       "checksum_types": ["sha256"],
-      "output": "{{template_dir}}/builds/{{user `vm_name`}}-{{user `version`}}-{{user `service`}}-{{.Provider}}.asc"
+      "only": ["virtualbox-iso"],
+      "output": "{{template_dir}}/builds/{{user `vm_name`}}-{{user `version`}}-{{user `service`}}-{{build_type}}.sha256sum.txt.asc"
     }
   ]
 }

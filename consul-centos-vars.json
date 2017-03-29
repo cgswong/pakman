@@ -1,6 +1,8 @@
 {
-  "_comment": "Variable file for CentOS 7.3 Consul Packer build, `packer build -var-file=consul-centos-vars.json centos-tpl.json`",
-  "aws_ami_desc": "CentOS 7.3 with Consul 6.5.0",
+  "_comment": "Variable file for CentOS 7.3 Consul Packer build, `packer build -var-file=consul-centos-vars.json consul-centos-tpl.json`",
+  "vm_description": "CentOS 7.3 with Consul 0.7.5",
+  "service": "Consul",
+  "service_version": "0.7.5",
   "disk_size": "40960",
   "distro": "centos-7.3",
   "distro_desc": "CentOS 7.3",
@@ -13,7 +15,5 @@
   "ks_cfg_file": "centos/centos-ks.cfg",
   "os_cpus": "1",
   "os_memory": "2048",
-  "vm_name": "CentOS-7.3",
-  "service": "Consul",
-  "service_version": "6.5.0"
+  "vm_name": "CentOS-7.3"
 }
