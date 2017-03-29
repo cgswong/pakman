@@ -10,7 +10,7 @@
     "aws_shutdown_action": "stop",
     "aws_username": "centos",
     "aws_volume_type": "gp2",
-    "aws_ami_desc": "CentOS 7.3 with Solr 6.5.0",
+    "aws_ami_desc": "CentOS 7.3",
     "ansible_dir": "{{template_dir}}/ansible",
     "scripts_dir": "{{template_dir}}/scripts",
     "ks_cfg_file": "centos/centos-ks.cfg",
@@ -33,7 +33,7 @@
     "iso_url": "http://mirrors.kernel.org/centos/7.3.1611/isos/x86_64/CentOS-7-x86_64-Minimal-1611.iso",
     "vagrant_password": "vagrant",
     "vagrant_username": "vagrant",
-    "vagrantfile_tpl": "{{template_dir}}/vagrant/solr/Vagrantfile",
+    "vagrantfile_tpl": "{{template_dir}}/vagrant/centos/Vagrantfile",
     "vbox_guest_os_type": "RedHat_64",
     "vbox_nictype": "virtio",
     "vbox_paravirtprovider": "default",
@@ -144,9 +144,9 @@
     {
       "type": "ansible-local",
       "playbook_dir": "{{user `ansible_dir`}}",
-      "playbook_file": "{{user `ansible_dir`}}/playbooks/solr.yml",
+      "playbook_file": "{{user `ansible_dir`}}/playbooks/base.yml",
       "staging_directory": "{{user `stage_dir`}}",
-      "extra_arguments": [ "--tags", "bootstrap,vbox" ]
+      "extra_arguments": [ "--tags", "bootstrap,common" ]
     }
   ],
   "post-processors": [
