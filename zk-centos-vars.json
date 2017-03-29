@@ -1,5 +1,5 @@
 {
-  "_comment": "Variable file for CentOS 7.3 ZooKeeper Packer build, `packer build -var-file=zk-centos-vars.json centos-tpl.json`",
+  "_comment": "Variable file for CentOS 7.3 ZooKeeper Packer build, `packer build -var-file=zk-centos-vars.json zk-centos-tpl.json`",
   "aws_ami_desc": "CentOS 7.3 with ZooKeeper 3.4.9",
   "disk_size": "40960",
   "distro": "centos-7.3",
