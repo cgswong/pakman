@@ -1,20 +1,60 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+Vagrant.require_version ">= 1.9.0"
 Vagrant.configure("2") do |config|
-    config.vm.define "vagrant-centos-7.2"
-    config.vm.box = "centos-7.2"
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
 
-    config.vm.provider :virtualbox do |v, override|
-        v.gui = true
-        v.customize ["modifyvm", :id, "--memory", 1024]
-        v.customize ["modifyvm", :id, "--cpus", 1]
-        v.customize ["modifyvm", :id, "--vram", "256"]
-        v.customize ["setextradata", "global", "GUI/MaxGuestResolution", "any"]
-        v.customize ["setextradata", :id, "CustomVideoMode1", "1024x768x32"]
-        v.customize ["modifyvm", :id, "--ioapic", "on"]
-        v.customize ["modifyvm", :id, "--rtcuseutc", "on"]
-        v.customize ["modifyvm", :id, "--accelerate3d", "on"]
-        v.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
-    end
-end
+  config.vm.define "centos"
+
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://atlas.hashicorp.com/search.
+  config.vm.box = "CentOS-7.3"
+
+  # Set the username that Vagrant will SSH as. We change this from the default
+  # `vagrant` to the OS distro
+  ## config.ssh.username = "vagrant"
+
+  # Create a forwarded port mapping which allows access to a specific port
+  # within the machine from a port on the host machine. In the example below,
+  # accessing "localhost:8080" will access port 80 on the guest machine.
+  # config.vm.network "forwarded_port", guest: 80, host: 8080
+
+  # Create a private network, which allows host-only access to the machine
+  # using a specific IP.
+  # config.vm.network "private_network", ip: "192.168.33.10"
+
+  # Create a public network, which generally matched to bridged network.
+  # Bridged networks make the machine appear as another physical device on
+  # your network.
+  # config.vm.network "public_network"
+
+  # Share an additional folder to the guest VM. The first argument is
+  # the path on the host to the actual folder. The second argument is
+  # the path on the guest to mount the folder. And the optional third
+  # argument is a set of non-required options.
+  # config.vm.synced_folder "../data", "/vagrant_data"
+
+  # Allow automatic SSH key inserts
+  config.ssh.insert_key = true
+
+  # Provider-specific configuration so you can fine-tune various
+  # backing providers for Vagrant. These expose provider-specific options.
+  config.vm.provider :virtualbox do |v, override|
+    v.gui = false
+    v.cpus = 1
+    v.memory = 1024
+    v.customize ["modifyvm", :id, "--vram", "10"]
+    v.customize ["setextradata", "global", "GUI/MaxGuestResolution", "any"]
+    v.customize ["setextradata", :id, "CustomVideoMode1", "1024x768x32"]
+    v.customize ["modifyvm", :id, "--ioapic", "on"]
+    v.customize ["modifyvm", :id, "--rtcuseutc", "on"]
+    v.customize ["modifyvm", :id, "--accelerate3d", "off"]
+    v.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
+  end
+  # Configure provisioning
+  config.vm.provision "shell", inline: <<-SHELL
+    yum -y update
+    update-ca-trust
+  SHELLend
