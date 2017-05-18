@@ -39,7 +39,7 @@
     "vbox_guest_os_type": "RedHat_64",
     "vbox_nictype": "virtio",
     "vbox_paravirtprovider": "default",
-    "version": "{{isotime \"2006.01.02.15\"}}",
+    "version": "{{isotime \"2006.01.02.1504\"}}",
     "vm_name": "CentOS-7.3"
   },
   "builders": [
@@ -138,11 +138,6 @@
         "http_proxy={{user `http_proxy`}}",
         "https_proxy={{user `https_proxy`}}"
       ],
-      "override": {
-        "amazon-ebs": {
-          "execute_command": "chmod +x {{.Path}} ; {{.Vars}} sudo -E bash '{{.Path}}'"
-        }
-      },
       "scripts": [
         "{{user `scripts_dir`}}/ansible-cfg"
       ]
@@ -151,8 +146,7 @@
       "type": "ansible-local",
       "playbook_dir": "{{user `ansible_dir`}}",
       "playbook_file": "{{user `ansible_dir`}}/playbooks/zookeeper.yml",
-      "staging_directory": "{{user `stage_dir`}}",
-      "extra_arguments": [ "--tags", "bootstrap,zookeeper" ]
+      "staging_directory": "{{user `stage_dir`}}"
     }
   ],
   "post-processors": [
