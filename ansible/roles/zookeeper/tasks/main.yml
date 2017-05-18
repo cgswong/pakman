@@ -2,6 +2,7 @@
 - name: Create ZooKeeper group
   group:
     name: "{{ zk_os_group }}"
+    gid: 5010
     state: present
   tags:
     - bootstrap
@@ -15,6 +16,7 @@
     home: "/home/{{ zk_os_user }}"
     createhome: yes
     shell: "/bin/bash"
+    uid: 5010
     state: present
   tags:
     - bootstrap
@@ -51,18 +53,18 @@
     - bootstrap
     - zookeeper
 
-- name: "Create ZooKeeper {{ item }} directory"
+- name: "Create ZooKeeper directories"
   file:
     path: "{{ item }}"
     state: directory
     owner: "{{ zk_os_user }}"
     group: "{{ zk_os_group }}"
+    mode: 0775
   with_items:
     - "{{ zk_dataDir }}"
     - "{{ zk_dataLogDir }}"
     - "{{ zk_log_dir }}"
     - "{{ zk_conf_dir }}"
-    - "{{ zk_pid_dir }}"
   tags:
     - bootstrap
     - zookeeper
@@ -71,7 +73,7 @@
   copy:
     content: 'export PATH=$PATH:{{ zk_dir }}/bin'
     dest: '/etc/profile.d/zoo.sh'
-    mode: 755
+    mode: 0755
   tags:
     - bootstrap
     - zookeeper
@@ -98,10 +100,15 @@
 
 - name: Deploy ZooKeeper service
   template:
-    src: "zookeeper.service.j2"
-    dest: "/etc/systemd/system/zookeeper.service"
+    src: "{{ item.src }}"
+    dest: "{{ item.dst }}"
     owner: "root"
     group: "root"
+  with_items:
+    - src: 'zookeeper.service.j2'
+      dst: '/etc/systemd/system/zookeeper.service'
+    - src: 'zookeeper.conf.j2'
+      dst: '/etc/tmpfiles.d/zookeeper.conf'
   notify:
     - reload daemon
   tags:

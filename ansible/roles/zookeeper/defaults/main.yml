@@ -7,7 +7,7 @@ zk_base_dir: "/opt"
 zk_dir: "{{ zk_base_dir }}/zookeeper"
 zk_conf_dir: "/etc/zookeeper"
 zk_conf_file: "zoo.cfg"
-zk_pid_dir: "/var/run/zookeeper"
+zk_pid_dir: "/var/run"
 zk_pid_file: "{{ zk_pid_dir }}/zookeeper_server.pid"
 # Enable to start ZooKeeper service during provisioning
 ##zk_start_service: true
