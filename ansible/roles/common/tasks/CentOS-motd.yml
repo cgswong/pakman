@@ -1,0 +1,59 @@
+---
+# Install updates for CentOS
+- name: Create motd directory for CentOS
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - "/var/lib/update-motd"
+    - "/etc/update-motd.d"
+  tags:
+    - bootstrap
+
+- name: Get motd files for CentOS
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dst }}"
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - src: '10-banner'
+      dst: '/etc/update-motd.d/10-banner'
+    - src: '15-dynmotd'
+      dst: '/etc/update-motd.d/15-dynmotd'
+    - src: '20-available-updates'
+      dst: '/etc/update-motd.d/20-available-updates'
+    - src: 'update-motd'
+      dst: '/usr/local/bin/update-motd'
+  when: ansible_distribution == "CentOS"
+  tags:
+    - bootstrap
+
+- name: Get motd-cron for CentOS
+  copy:
+    src: 'update-motd.cron'
+    dest: '/etc/cron.d/motd'
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_distribution == "CentOS"
+  tags:
+    - bootstrap
+
+- name: Run motd for CentOS
+  command: "/usr/local/bin/update-motd --enable"
+  tags:
+    - bootstrap
+
+- name: Create motd link for CentOS
+  file:
+    src: "/var/lib/update-motd/motd"
+    dest: "/etc/motd"
+    force: yes
+    state: link
+  tags:
+    - bootstrap

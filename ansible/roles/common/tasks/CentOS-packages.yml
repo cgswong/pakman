@@ -1,28 +1,8 @@
 ---
-- name: Get IUS rpm
-  get_url:
-    url: "https://centos7.iuscommunity.org/ius-release.rpm"
-    dest: "/tmp/ius-release.rpm"
-  when: ansible_distribution == "CentOS"
-  tags:
-    - packages
-    - bootstrap
-    - updates
-
 - name: Install IUS repository
   yum:
-    name: "/tmp/ius-release.rpm"
+    name: "https://centos7.iuscommunity.org/ius-release.rpm"
     state: present
-  when: ansible_distribution == "CentOS"
-  tags:
-    - packages
-    - bootstrap
-    - updates
-
-- name: Install Python SCL
-  yum:
-    name: centos-release-scl
-    state: latest
   when: ansible_distribution == "CentOS"
   tags:
     - packages
@@ -63,9 +43,7 @@
     - perl
     - python
     - python-pip
-    - python27
     - python36u
-    - rh-python35
     - rsync
     - screen
     - sysstat

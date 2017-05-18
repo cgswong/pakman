@@ -13,13 +13,15 @@
     - ssh
     - bootstrap
 
+# Install OS packages
 - include: "{{ ansible_distribution }}-packages.yml"
   tags:
     - always
     - packages
     - bootstrap
 
-- include: updates.yml
+# Install updates
+- include: "{{ansible_distribution}}-updates.yml"
   tags:
     - packages
     - bootstrap
@@ -34,6 +36,11 @@
   tags:
     - packages
     - kernel
+    - bootstrap
+
+# Install motd
+- include: "{{ ansible_distribution }}-motd.yml"
+  tags:
     - bootstrap
 
 - include: cleanup.yml
