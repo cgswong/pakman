@@ -32,7 +32,7 @@
     - bootstrap
     - network
 
-- name: Make DHClient happy on Ubuntu
+- name: Make DHCPclient happy on Ubuntu
   lineinfile:
     regexp: "pre-up sleep"
     line: "pre-up sleep 2"

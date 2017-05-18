@@ -35,7 +35,7 @@ case "$1" in
     exit 1;;
 esac
 
-# Just exit if  disabled and --force wasn't passed
+# Just exit if disabled and --force wasn't passed
 [[ -e ${DATA_DIR}/disabled ]] && [[ "$1" != "--force" ]] && exit 0
 
 if [[ -d ${CFG_DIR} ]]; then
