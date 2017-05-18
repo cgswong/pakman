@@ -1,0 +1,24 @@
+---
+dependencies: []
+
+galaxy_info:
+  author: cgswong
+  description: VirtualBox and Vagrant configuration
+  company: "CenSys, LLC"
+  license: "license (MIT)"
+  min_ansible_version: 2.1
+  platforms:
+    - name: CentOS
+      versions:
+      - 7
+    - name: EL
+      versions:
+      - 7
+    - name: Ubuntu
+      versions:
+      - xenial
+  galaxy_tags:
+    - configuration
+    - services
+    - vagrant
+    - virtualbox

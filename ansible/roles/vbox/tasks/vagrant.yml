@@ -1,0 +1,59 @@
+---
+- name: create Vagrant group
+  group:
+    name: "{{ ssh_user_group }}"
+    gid: 5005
+    state: present
+  tags:
+    - vagrant
+    - bootstrap
+
+- name: create Vagrant user
+  user:
+    name: "{{ ssh_user_name }}"
+    group: "{{ ssh_user_group }}"
+    home: "{{ ssh_user_home }}"
+    createhome: yes
+    shell: "/bin/bash"
+    comment: "Vagrant user"
+    generate_ssh_key: yes
+    ssh_key_comment: "Vagrant user key"
+    ssh_key_bits: 2048
+    uid: 5005
+    state: present
+  tags:
+    - vagrant
+    - bootstrap
+
+- name: Setup sudo access
+  copy:
+    dest: "/etc/sudoers.d/vagrant"
+    content: "%{{ ssh_user_group }} ALL=(ALL) NOPASSWD: ALL"
+    owner: root
+    group: root
+    mode: 0440
+  tags:
+    - vagrant
+    - bootstrap
+
+- name: Validate Vagrant user SSH directory permissions
+  file:
+    path: "{{ ssh_user_home }}/.ssh"
+    state: directory
+    owner: "{{ ssh_user_name }}"
+    group: "{{ ssh_user_group }}"
+    mode: 0700
+  tags:
+    - vagrant
+    - bootstrap
+
+- name: Setup Vagrant user SSH access
+  get_url:
+    url: "{{ vagrant_ssh_url }}"
+    dest: "{{ ssh_user_home }}/.ssh/authorized_keys"
+    owner: "{{ ssh_user_name }}"
+    group: "{{ ssh_user_group }}"
+    mode: 0600
+  tags:
+    - vagrant
+    - bootstrap
