@@ -1,0 +1,139 @@
+---
+- name: Get kernel version
+  shell: "uname -r"
+  tags:
+    - vbox
+    - bootstrap
+  register: kernel_version
+
+- name: Install VirtualBox Tools OS package requirements for CentOS
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - 'bzip2'
+    - 'cpp'
+    - 'dkms'
+    - 'gcc'
+    - 'make'
+  when: ansible_distribution == "CentOS"
+  tags:
+    - vbox
+    - bootstrap
+
+- name: Remove old kernel packages to install ELREPO kernel versions for CentOS
+  yum:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - 'kernel-devel'
+    - 'kernel-headers'
+  when: ansible_distribution == "CentOS" and (kernel_version.stdout.find('elrepo') != -1)
+  tags:
+    - vbox
+    - bootstrap
+
+- name: Install VirtualBox Tools ELREPO kernel packages for CentOS
+  yum:
+    name: "{{ item }}"
+    state: latest
+    enablerepo: 'elrepo-kernel'
+  with_items:
+    - 'kernel-ml-devel'
+    - 'kernel-ml-headers'
+  when: ansible_distribution == "CentOS" and (kernel_version.stdout.find('elrepo') != -1)
+  tags:
+    - vbox
+    - bootstrap
+
+- name: Install VirtualBox Tools kernel packages for CentOS
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - 'kernel-devel'
+    - 'kernel-headers'
+  when: ansible_distribution == "CentOS" and (kernel_version.stdout.find('elrepo') == -1)
+  tags:
+    - vbox
+    - bootstrap
+
+- name: Install VirtualBox Tools package requirements for Ubuntu
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - dkms
+    - 'linux-headers-{{ kernel_version.stdout }}'
+    - build-essential
+    - make
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - vbox
+    - bootstrap
+
+- name: Mount guest additions ISO
+  mount:
+    path: "{{ vbox_mount }}"
+    src: "{{ ssh_user_home }}/VBoxGuestAdditions_{{ vbox_version }}.iso"
+    fstype: iso9660
+    opts: ro
+    state: mounted
+  tags:
+    - vbox
+    - bootstrap
+
+- name: Install VirtualBox Guest Additions
+  command: "{{ vbox_mount }}/VBoxLinuxAdditions.run --nox11"
+  ignore_errors: yes
+  tags:
+    - vbox
+    - bootstrap
+
+- name: Unmount guest additions ISO
+  mount:
+    path: "{{ vbox_mount }}"
+    state: unmounted
+  tags:
+    - vbox
+    - bootstrap
+
+- name: Remove VirtualBox Guest addition artifacts
+  file:
+    path: '{{ item }}'
+    state: absent
+  with_items:
+    - "{{ ssh_user_home }}/VBoxGuestAdditions_{{ vbox_version }}.iso"
+    - "{{ vbox_mount }}"
+  tags:
+    - vbox
+    - bootstrap
+    - cleanup
+
+- name: Remove kernel packages for Guest Additions on CentOS
+  yum:
+    name: "{{ item }}"
+    state: absent
+  ignore_errors: yes
+  with_items:
+    - 'kernel-devel'
+    - 'kernel-headers'
+    - 'kernel-ml-devel'
+    - 'kernel-ml-headers'
+    - 'cpp'
+  when: ansible_distribution == "CentOS"
+  tags:
+    - vbox
+    - bootstrap
+    - cleanup
+
+- name: Remove linux headers for Guest Additions on Ubuntu
+  apt:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - 'linux-headers-{{ kernel_version.stdout }}'
+  when: ansible_distribution == "Ubuntu"
+  tags:
+    - vbox
+    - bootstrap

@@ -1,0 +1,27 @@
+---
+- include: vbox.yml
+  tags:
+    - vbox
+    - bootstrap
+
+- include: vagrant.yml
+  tags:
+    - vagrant
+    - bootstrap
+
+- name: Check for WiFi in CentOS
+  shell: "which nmcli"
+  when: ansible_distribution == "CentOS"
+  register: vbox_wifi
+  tags:
+    - vbox
+    - network
+    - cleanup
+
+- name: Turn off WiFi for CentOS
+  command: "nmcli radio all off"
+  when: ansible_distribution == "CentOS" and vbox_wifi.rc == 1
+  tags:
+    - vbox
+    - network
+    - cleanup
